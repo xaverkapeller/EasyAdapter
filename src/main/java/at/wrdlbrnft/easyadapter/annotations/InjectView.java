@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Created by Xaver on 14/11/14.
  */
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ ElementType.FIELD, ElementType.PARAMETER})
 public @interface InjectView {
     public int id();
 }

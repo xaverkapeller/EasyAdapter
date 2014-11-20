@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -88,13 +89,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         for(Method method : methods) {
 
             if(method.isAnnotationPresent(OnBind.class)) {
-                final Class<?>[] parameterTypes = method.getParameterTypes();
-                final Object[] parameters = new Object[parameterTypes.length];
-                for (int i = 0, length = parameterTypes.length; i < length; i++) {
-                    Class<?> cls = parameterTypes[i];
-                    final Object parameter = getObjectToInject(cls);
-                    parameters[i] = parameter;
-                }
+                final Object[] parameters = getArgumentsForMethod(method);
 
                 final Action<T> action = new OnBindActionImpl<>(method, parameters);
                 mActions.add(action);
@@ -107,13 +102,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
                 final ViewWrapper wrapper = getViewWrapper(viewId);
                 final View view = wrapper.getView();
 
-                final Class<?>[] parameterTypes = method.getParameterTypes();
-                final Object[] parameters = new Object[parameterTypes.length];
-                for (int i = 0, length = parameterTypes.length; i < length; i++) {
-                    Class<?> cls = parameterTypes[i];
-                    final Object parameter = getObjectToInject(cls);
-                    parameters[i] = parameter;
-                }
+                final Object[] parameters = getArgumentsForMethod(method);
 
                 final Action<T> action = new OnClickActionImpl<>(view, method, parameters);
                 mActions.add(action);
@@ -131,20 +120,44 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
                 }
 
                 final CheckBox checkBox = (CheckBox) view;
-
-                final Class<?>[] parameterTypes = method.getParameterTypes();
-                final Object[] parameters = new Object[parameterTypes.length];
-                for (int i = 0, length = parameterTypes.length; i < length; i++) {
-                    Class<?> cls = parameterTypes[i];
-                    final Object parameter = getObjectToInject(cls);
-                    parameters[i] = parameter;
-                }
+                final Object[] parameters = getArgumentsForMethod(method);
 
                 final Action<T> action = new OnCheckedChangeActionImpl<>(checkBox, method, parameters);
                 mActions.add(action);
                 continue;
             }
         }
+    }
+
+    private Object[] getArgumentsForMethod(Method method) {
+
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        final Annotation[][] annotationsArray = method.getParameterAnnotations();
+        final Object[] parameters = new Object[parameterTypes.length];
+
+        for (int i = 0, length = parameterTypes.length; i < length; i++) {
+            final Class<?> cls = parameterTypes[i];
+            final Annotation[] annotations = annotationsArray[i];
+            Object objectToInject = null;
+
+            for(Annotation annotation : annotations) {
+                if(annotation instanceof InjectView) {
+                    final InjectView injectViewAnnotation = (InjectView) annotation;
+                    final int viewId = injectViewAnnotation.id();
+                    final ViewWrapper wrapper = getViewWrapper(viewId);
+                    objectToInject = wrapper.getView();
+                    break;
+                }
+            }
+
+            if(objectToInject == null) {
+                objectToInject = getObjectToInject(cls);
+            }
+
+            parameters[i] = objectToInject;
+        }
+
+        return parameters;
     }
 
     private Object getObjectToInject(Class<?> classToInject) {
