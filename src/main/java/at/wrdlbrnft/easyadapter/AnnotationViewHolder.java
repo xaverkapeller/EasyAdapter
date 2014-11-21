@@ -395,9 +395,9 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
             private final Object[] mArguments;
 
             private MethodCheckedChangedListener(Object model, Method method, Object[] arguments) {
-                this.mModel = model;
-                this.mMethod = method;
-                this.mArguments = arguments;
+                mModel = model;
+                mMethod = method;
+                mArguments = arguments;
             }
 
             @Override

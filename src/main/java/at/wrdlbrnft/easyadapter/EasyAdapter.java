@@ -15,7 +15,9 @@ import at.wrdlbrnft.easyadapter.helper.ReflectionHelper;
 import at.wrdlbrnft.easyadapter.model.ViewModel;
 
 /**
- * Created by Xaver on 14/11/14.
+ * Created with Android Studio
+ * User: Xaver Kapeller
+ * Date: 14/11/14
  */
 public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AnnotationViewHolder<T>> {
 
