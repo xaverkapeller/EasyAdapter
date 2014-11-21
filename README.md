@@ -249,7 +249,7 @@ public void onClick(Context context, @InjectView(id = R.id.textview) TextView te
 ```
 
 Implementing custom behaviour through @OnBind and @OnUnbind
-------------
+---------
 
 What is not supported directly through the use of annotations can easily be implemented through the use of `@OnBind` and `@OnUnbind`.
 
