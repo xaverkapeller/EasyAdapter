@@ -132,7 +132,7 @@ You can specify how to apply the data like this:
 | `CHECKED_STATE` | The data will be interpreted as checked state. Can be a `boolean` or `Boolean`. |
 | `ENABLED` | The data will be interpreted as enabled state. Can be a `boolean` or `Boolean`. |
 
-Events & Callbacks
+Events and Callbacks
 --------------
 
 Currently there are four supported callbacks through annotations.
@@ -178,7 +178,7 @@ public void unbind(Context context) {
 }
 ```
 
-Injecting Views & custom Objects
+Injecting Views and custom Objects
 --------------
 
 You can inject `View` instances into fields and methods through the use of the `@InjectView` annotation. You can then access these `View` instances in the annotated callback methods mentioned in the previous chapter. For example you can inject a `View` into a field like this:
