@@ -1,6 +1,8 @@
 package at.wrdlbrnft.easyadapter.viewwrapper;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.View;
@@ -102,6 +104,15 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
                 ViewHelper.setBackground(view, null);
             } else {
                 ViewHelper.setBackground(view, (Drawable) value);
+            }
+            return true;
+        }
+
+        if (valueClass == Bitmap.class) {
+            if (value == null) {
+                ViewHelper.setBackground(view, null);
+            } else {
+                ViewHelper.setBackground(view, new BitmapDrawable(mView.getResources(), (Bitmap) value));
             }
             return true;
         }

@@ -19,6 +19,7 @@ import at.wrdlbrnft.easyadapter.annotations.InjectView;
 import at.wrdlbrnft.easyadapter.annotations.OnBind;
 import at.wrdlbrnft.easyadapter.annotations.OnCheckedChanged;
 import at.wrdlbrnft.easyadapter.annotations.OnClick;
+import at.wrdlbrnft.easyadapter.annotations.OnUnbind;
 import at.wrdlbrnft.easyadapter.exceptions.AnnotationMismatchException;
 import at.wrdlbrnft.easyadapter.helper.ReflectionHelper;
 import at.wrdlbrnft.easyadapter.model.ViewModel;
@@ -36,6 +37,8 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
     private final EasyAdapter<T> mAdapter;
     private final Object[] mInjectedObjects;
     private final List<Action<T>> mActions = new ArrayList<Action<T>>();
+
+    private T mCurrentModel;
 
     public AnnotationViewHolder(Context context, EasyAdapter<T> adapter, Object[] injectedObjects, View itemView, Class<T> modelClass) {
         super(itemView);
@@ -92,6 +95,14 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
                 final Object[] parameters = getArgumentsForMethod(method);
 
                 final Action<T> action = new OnBindActionImpl<>(method, parameters);
+                mActions.add(action);
+                continue;
+            }
+
+            if(method.isAnnotationPresent(OnUnbind.class)) {
+                final Object[] parameters = getArgumentsForMethod(method);
+
+                final Action<T> action = new OnUnbindActionImpl<>(method, parameters);
                 mActions.add(action);
                 continue;
             }
@@ -185,9 +196,13 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
 
     public void bind(T model) {
 
-        for(Action<T> action : mActions) {
-            action.unbind();
+        if(mCurrentModel != null) {
+            for (Action<T> action : mActions) {
+                action.unbind(mCurrentModel);
+            }
         }
+
+        mCurrentModel = model;
 
         if (model == null) {
             return;
@@ -217,7 +232,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
 
     private interface Action<T> {
         public void bind(T model);
-        public void unbind();
+        public void unbind(T model);
     }
 
     private static class BindActionImpl<T> implements Action<T> {
@@ -242,7 +257,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         }
 
         @Override
-        public void unbind() {
+        public void unbind(T model) {
 
         }
     }
@@ -263,7 +278,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         }
 
         @Override
-        public void unbind() {
+        public void unbind(T model) {
 
         }
     }
@@ -284,8 +299,29 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         }
 
         @Override
-        public void unbind() {
+        public void unbind(T model) {
 
+        }
+    }
+
+    private static class OnUnbindActionImpl<T> implements Action<T> {
+
+        private final Method mMethod;
+        private final Object[] mArguments;
+
+        private OnUnbindActionImpl(Method method, Object[] arguments) {
+            mMethod = method;
+            mArguments = arguments;
+        }
+
+        @Override
+        public void bind(T model) {
+
+        }
+
+        @Override
+        public void unbind(T model) {
+            ReflectionHelper.invoke(mMethod, model, mArguments);
         }
     }
 
@@ -307,7 +343,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         }
 
         @Override
-        public void unbind() {
+        public void unbind(T model) {
             mView.setOnClickListener(null);
         }
 
@@ -348,7 +384,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         }
 
         @Override
-        public void unbind() {
+        public void unbind(T model) {
             mCheckBox.setOnCheckedChangeListener(null);
         }
 
