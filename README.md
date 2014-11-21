@@ -66,6 +66,8 @@ The result would look like this:
 
 ![First example image](http://i.imgur.com/S2MeLEH.png)
 
+You can display all kinds of different view model classes in the same `RecyclerView`, just add them to the same `List` and pass that `List` to the `EasyAdapter`. The `EasyAdapter` is already optimized for efficient view recycling with many different kinds of view items. You can use the generic type parameter of `EasyAdapter` to narrow down which view model classes are allowed in the `Adapter`. `EasyAdapter<ViewModel>` allows any kind of view model class.
+
 Advanced Usage
 --------------
 
@@ -248,7 +250,7 @@ public void onClick(Context context, @InjectView(id = R.id.textview) TextView te
 }
 ```
 
-Implementing custom behaviour through @OnBind and @OnUnbind
+Implementing custom behaviour or not supported features
 ---------
 
 What is not supported directly through the use of annotations can easily be implemented through the use of `@OnBind` and `@OnUnbind`.
