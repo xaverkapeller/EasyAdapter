@@ -5,12 +5,14 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
+
 /**
  * Created by Xaver on 14/11/14.
  */
 public interface ViewWrapper {
 
-    public boolean bind(Property property, Class<?> valueClass, Object value);
+    public boolean bind(Property property, Field field, Object value);
 
     public View getView();
 

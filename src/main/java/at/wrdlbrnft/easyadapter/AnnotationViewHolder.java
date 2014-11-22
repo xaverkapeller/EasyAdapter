@@ -58,12 +58,14 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
 
             if(field.isAnnotationPresent(BindToView.class)) {
                 final BindToView annotation = field.getAnnotation(BindToView.class);
-                final int viewId = annotation.id();
+                final int[] ids = annotation.id();
                 final Property property = annotation.property();
 
-                final ViewWrapper wrapper = getViewWrapper(viewId);
-                final Action<T> action = new BindActionImpl<>(field, property, wrapper);
-                mActions.add(action);
+                for(int viewId : ids) {
+                    final ViewWrapper wrapper = getViewWrapper(viewId);
+                    final Action<T> action = new BindActionImpl<>(field, property, wrapper);
+                    mActions.add(action);
+                }
                 continue;
             }
 
@@ -253,7 +255,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         public void bind(T model) {
             final Object value = ReflectionHelper.getValueOf(mField, model);
 
-            mWrapper.bind(mProperty, mFieldType, value);
+            mWrapper.bind(mProperty, mField, value);
         }
 
         @Override

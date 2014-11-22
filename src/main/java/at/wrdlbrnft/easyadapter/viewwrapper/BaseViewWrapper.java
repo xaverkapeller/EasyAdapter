@@ -4,8 +4,9 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.view.View;
+
+import java.lang.reflect.Field;
 
 import at.wrdlbrnft.easyadapter.helper.TypeHelper;
 import at.wrdlbrnft.easyadapter.helper.ViewHelper;
@@ -22,54 +23,54 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
     }
 
     @Override
-    public boolean bind(Property property, Class<?> valueClass, Object value) {
+    public boolean bind(Property property, Field field, Object value) {
 
         switch (property) {
 
             case AUTO_DETECT:
-                return applyAutoDetect(mView, valueClass, value);
+                return applyAutoDetect(mView, field, value);
 
             case TEXT:
-                return applyText(mView, valueClass, value);
+                return applyText(mView, field, value);
 
             case IMAGE:
-                return applyImage(mView, valueClass, value);
+                return applyImage(mView, field, value);
 
             case BACKGROUND:
-                return applyBackground(mView, valueClass, value);
+                return applyBackground(mView, field, value);
 
             case BACKGROUND_COLOR:
-                return applyBackgroundColor(mView, valueClass, value);
+                return applyBackgroundColor(mView, field, value);
 
             case ALPHA:
-                return applyAlpha(mView, valueClass, value);
+                return applyAlpha(mView, field, value);
 
             case VISIBILITY:
-                return applyVisibility(mView, valueClass, value);
+                return applyVisibility(mView, field, value);
 
             case TRANSLATION_X:
-                return applyTranslationX(mView, valueClass, value);
+                return applyTranslationX(mView, field, value);
 
             case TRANSLATION_Y:
-                return applyTranslationY(mView, valueClass, value);
+                return applyTranslationY(mView, field, value);
 
             case TRANSLATION_Z:
-                return applyTranslationZ(mView, valueClass, value);
+                return applyTranslationZ(mView, field, value);
 
             case ROTATION:
-                return applyRotation(mView, valueClass, value);
+                return applyRotation(mView, field, value);
 
             case ROTATION_X:
-                return applyRotationX(mView, valueClass, value);
+                return applyRotationX(mView, field, value);
 
             case ROTATION_Y:
-                return applyRotationY(mView, valueClass, value);
+                return applyRotationY(mView, field, value);
 
             case CHECKED_STATE:
-                return applyCheckedState(mView, valueClass, value);
+                return applyCheckedState(mView, field, value);
 
             case ENABLED:
-                return applyEnabled(mView, valueClass, value);
+                return applyEnabled(mView, field, value);
 
             default:
                 return false;
@@ -81,200 +82,209 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
         return mView;
     }
 
-    protected boolean applyAutoDetect(T view, Class<?> valueClass, Object value) {
+    protected boolean applyAutoDetect(T view, Field field, Object value) {
         return false;
     }
 
-    protected boolean applyText(T view, Class<?> valueClass, Object value) {
+    protected boolean applyText(T view, Field field, Object value) {
         return false;
     }
 
-    protected boolean applyImage(T view, Class<?> valueClass, Object value) {
+    protected boolean applyImage(T view, Field field, Object value) {
         return false;
     }
 
-    protected boolean applyCheckedState(T view, Class<?> valueClass, Object value) {
+    protected boolean applyCheckedState(T view, Field field, Object value) {
         return false;
     }
 
-    protected boolean applyBackground(T view, Class<?> valueClass, Object value) {
+    protected boolean applyBackground(T view, Field field, Object value) {
 
-        if (valueClass == Drawable.class) {
-            if (value == null) {
-                ViewHelper.setBackground(view, null);
-            } else {
-                ViewHelper.setBackground(view, (Drawable) value);
-            }
+        if(value == null) {
+            ViewHelper.setBackground(view, null);
             return true;
         }
 
-        if (valueClass == Bitmap.class) {
-            if (value == null) {
-                ViewHelper.setBackground(view, null);
-            } else {
-                ViewHelper.setBackground(view, new BitmapDrawable(mView.getResources(), (Bitmap) value));
-            }
+        final Class<?> type = field.getType();
+
+        if (type == Drawable.class) {
+            ViewHelper.setBackground(view, (Drawable) value);
             return true;
         }
 
-        if (TypeHelper.isInteger(valueClass)) {
-            if (value == null) {
-                ViewHelper.setBackground(view, null);
-            } else {
-                view.setBackgroundResource((Integer) value);
-            }
+        if (type == Bitmap.class) {
+            ViewHelper.setBackground(view, new BitmapDrawable(mView.getResources(), (Bitmap) value));
+            return true;
+        }
+
+        if (TypeHelper.isInteger(type)) {
+            view.setBackgroundResource((Integer) value);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyBackgroundColor(T view, Class<?> valueClass, Object value) {
+    protected boolean applyBackgroundColor(T view, Field field, Object value) {
+        if(value == null) {
+            view.setBackgroundColor(Color.TRANSPARENT);
+            return true;
+        }
 
-        if (TypeHelper.isInteger(valueClass)) {
-            if (value == null) {
-                view.setBackgroundColor(Color.TRANSPARENT);
-            } else {
-                view.setBackgroundColor((Integer) value);
-            }
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isInteger(type)) {
+            view.setBackgroundColor((Integer) value);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyAlpha(T view, Class<?> valueClass, Object value) {
+    protected boolean applyAlpha(T view, Field field, Object value) {
+        if(value == null) {
+            view.setAlpha(0.0f);
+            return true;
+        }
 
-        if (TypeHelper.isNumber(valueClass)) {
-            if (value == null) {
-                view.setAlpha(0.0f);
-            } else {
-                view.setAlpha((Float) value);
-            }
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isNumber(type)) {
+            view.setAlpha((Float) value);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyVisibility(T view, Class<?> valueClass, Object value) {
-
-        if (TypeHelper.isInteger(valueClass)) {
-            if (value == null) {
-                view.setVisibility(View.GONE);
-            } else {
-                view.setVisibility((Integer) value);
-            }
+    protected boolean applyVisibility(T view, Field field, Object value) {
+        if (value == null) {
+            view.setVisibility(View.GONE);
             return true;
         }
 
-        if (TypeHelper.isBoolean(valueClass)) {
-            if (value == null) {
-                view.setVisibility(View.GONE);
-            } else {
-                final boolean visible = (Boolean) value;
-                view.setVisibility(visible ? View.VISIBLE : View.GONE);
-            }
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isInteger(type)) {
+            view.setVisibility((Integer) value);
             return true;
         }
 
-        return false;
-    }
-
-    protected boolean applyTranslationX(T view, Class<?> valueClass, Object value) {
-
-        if (TypeHelper.isNumber(valueClass)) {
-            if (value == null) {
-                view.setTranslationX(0.0f);
-            } else {
-                view.setTranslationX((Float) value);
-            }
+        if (TypeHelper.isBoolean(type)) {
+            final boolean visible = (Boolean) value;
+            view.setVisibility(visible ? View.VISIBLE : View.GONE);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyTranslationY(T view, Class<?> valueClass, Object value) {
+    protected boolean applyTranslationX(T view, Field field, Object value) {
+        if (value == null) {
+            view.setTranslationX(0.0f);
+            return true;
+        }
 
-        if (TypeHelper.isNumber(valueClass)) {
-            if (value == null) {
-                view.setTranslationY(0.0f);
-            } else {
-                view.setTranslationY((Float) value);
-            }
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isNumber(type)) {
+            view.setTranslationX((Float) value);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyTranslationZ(T view, Class<?> valueClass, Object value) {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.L) {
-            if (TypeHelper.isNumber(valueClass)) {
-                if (value == null) {
-                    view.setTranslationZ(0.0f);
-                } else {
-                    view.setTranslationZ((Float) value);
-                }
-                return true;
-            }
+    protected boolean applyTranslationY(T view, Field field, Object value) {
+        if (value == null) {
+            view.setTranslationY(0.0f);
+            return true;
         }
 
-        return false;
-    }
+        final Class<?> type = field.getType();
 
-    protected boolean applyRotation(T view, Class<?> valueClass, Object value) {
-
-        if (TypeHelper.isNumber(valueClass)) {
-            if (value == null) {
-                view.setRotation(0.0f);
-            } else {
-                view.setRotation((Float) value);
-            }
+        if (TypeHelper.isNumber(type)) {
+            view.setTranslationY((Float) value);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyRotationX(T view, Class<?> valueClass, Object value) {
+    protected boolean applyTranslationZ(T view, Field field, Object value) {
+        if (value == null) {
+            view.setTranslationZ(0.0f);
+            return true;
+        }
 
-        if (TypeHelper.isNumber(valueClass)) {
-            if (value == null) {
-                view.setRotationX(0.0f);
-            } else {
-                view.setRotationX((Float) value);
-            }
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isNumber(type)) {
+            view.setTranslationZ((Float) value);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyRotationY(T view, Class<?> valueClass, Object value) {
+    protected boolean applyRotation(T view, Field field, Object value) {
+        if (value == null) {
+            view.setRotation(0.0f);
+            return true;
+        }
 
-        if (TypeHelper.isNumber(valueClass)) {
-            if (value == null) {
-                view.setRotationY(0.0f);
-            } else {
-                view.setRotationY((Float) value);
-            }
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isNumber(type)) {
+            view.setRotation((Float) value);
             return true;
         }
 
         return false;
     }
 
-    protected boolean applyEnabled(T view, Class<?> valueClass, Object value) {
+    protected boolean applyRotationX(T view, Field field, Object value) {
+        if (value == null) {
+            view.setRotationX(0.0f);
+            return true;
+        }
 
-        if (TypeHelper.isBoolean(valueClass)) {
-            if (value == null) {
-                view.setEnabled(false);
-            } else {
-                view.setEnabled((Boolean) value);
-            }
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isNumber(type)) {
+            view.setRotationX((Float) value);
+            return true;
+        }
+
+        return false;
+    }
+
+    protected boolean applyRotationY(T view, Field field, Object value) {
+        if (value == null) {
+            view.setRotationY(0.0f);
+            return true;
+        }
+
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isNumber(type)) {
+            view.setRotationY((Float) value);
+            return true;
+        }
+
+        return false;
+    }
+
+    protected boolean applyEnabled(T view, Field field, Object value) {
+        if (value == null) {
+            view.setEnabled(false);
+            return true;
+        }
+
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isBoolean(type)) {
+            view.setEnabled((Boolean) value);
             return true;
         }
 
