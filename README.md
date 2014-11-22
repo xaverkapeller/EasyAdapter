@@ -91,6 +91,13 @@ private int textResId;
 private int drawableResId;
 ```
 
+You can also bind the same value to multiple `Views` like this:
+
+```java
+@BindToView(id = {R.id.textview, R.id.checkbox})
+private String text;
+```
+
 The deciding factor for how the data is applied is always the type of the `View` and the type of the `Field`. The following tables shows how values of different types are interpreted for each `View` by default:
 
 |  | `TextView` | `Checkbox` | `ImageView` |
@@ -131,6 +138,43 @@ You can specify how to apply the data like this:
 | `ROTATION_Y` | The data will be interpreted as rotation value around the y axis. Can be a `int`, `Integer`, `float`, `Float`, `double` or `Double` value. |
 | `CHECKED_STATE` | The data will be interpreted as checked state. Can be a `boolean` or `Boolean`. |
 | `ENABLED` | The data will be interpreted as enabled state. Can be a `boolean` or `Boolean`. |
+
+Date Formatting
+--------------
+
+You can use the `@DateFormat` annotation to define how `Date` objects are formatted. You can choose what information you want to display (date, time or both) and you can choose between a long and a short version. The information you want to display is then formatted **according to the current locale**!
+
+```java
+@DateFormat(format = DateFormat.Format.SHORT_DATE_TIME)
+@BindToView(id = R.id.textview)
+private Date date;
+```
+
+The code above would format a short version of both the date and time. The results would look like this for different languages:
+
+| Language | Result |
+| ------ | ------ |
+| German | 22.11.14 14:29 |
+| English | 11/22/14 2:29 PM | 
+
+`@DateFormat` should be used in most cases as it correctly formats the date according to the locale, but if you want to have more control over how the `Date` is formatted then you can use the `@DatePattern` annotation to supply a specific date pattern, but then it will be formatted the same way in **every** locale. The pattern follows the rules of `SimpleDateFormat` and you can look up those rules [here](http://developer.android.com/reference/java/text/SimpleDateFormat.html).
+
+```java
+@DatePattern(pattern = "hh:mm:ss")
+@BindToView(id = R.id.textview)
+private Date date;
+```
+
+Number Formatting
+--------------
+
+To format numbers you can use the `@NumberFormat` annotation. You have to supply it with a pattern according to the rules of the `DecimalFormat` class. You can find those rules [here](http://developer.android.com/reference/java/text/DecimalFormat.html).
+
+```java
+@NumberFormat(pattern = "#.000")
+@BindToView(id = R.id.textview)
+private float number;
+```
 
 Events and Callbacks
 --------------
