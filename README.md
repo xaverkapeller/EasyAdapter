@@ -121,8 +121,11 @@ You can specify how to apply the data like this:
 | ----- | ----------- |
 | `AUTO_DETECT` | This is the default value. If you specify this than the data will be applied according to the table above. |
 | `TEXT` | The data will be interpreted as text. Essentially calls `.toString()` on the `Object` and sets it as text if possible |
-| `IMAGE`| The data will be interpreted as an image. `Drawable`, `Bitmap` and an `int` or `Integer` drawable resource are possible values. |
-| `BACKGROUND`| The data will be interpreted as background. `Drawable`, `Bitmap` and an `int` or `Integer` drawable resource are possible values. |
+| `TEXT_RESOURCE` | The data will be interpreted as text. `int` or `Integer` string resource ids are possible values. |
+| `IMAGE`| The data will be interpreted as an image. `Drawable` or `Bitmap` instances are possible values. |
+| `IMAGE_RESOURCE`| The data will be interpreted as an image. `int` or `Integer` drawable resource ids are possible values. |
+| `BACKGROUND`| The data will be interpreted as background. `Drawable` or `Bitmap` instances are possible values. |
+| `BACKGROUND_RESOURCE`| The data will be interpreted as background. `int` or `Integer` drawable resource ids are possible values. |
 | `BACKGROUND_COLOR` | The data will be interpreted as background color. Only `int` or `Integer` color code values are possible (**NO** color resources!!!1). |
 | `ALPHA` | The data will be interpreted as alpha value for the `View`. `int`, `Integer`, `float`, `Float`, `double` and `Double` values are possible. |
 | `VISIBILITY` | The data will be interpreted as visibility value! Can be a `boolean` or `Boolean` (`true` equals `View.VISIBLE`, `false` equals `View.GONE`) or it can be `View.VISIBLE`, `View.INVISIBLE` or `View.GONE`. |
@@ -135,13 +138,32 @@ You can specify how to apply the data like this:
 | `CHECKED_STATE` | The data will be interpreted as checked state. Can be a `boolean` or `Boolean`. |
 | `ENABLED` | The data will be interpreted as enabled state. Can be a `boolean` or `Boolean`. |
 
+General Formatting
+--------------
+
+To format string or numbers you can use the `@Format` annotation. You have to supply it with a pattern according to the rules of `String.format()` as documented [here](http://developer.android.com/reference/java/util/Formatter.html).
+
+First you have to define the pattern as string resource like this:
+
+```xml
+<string name="date_pattern">Value: %f</string>
+```
+
+And then reference the pattern with the `@Format` annotation.
+
+```java
+@Format(pattern = R.string.pattern)
+@BindToView(id = R.id.textview)
+private float number;
+```
+
 Date Formatting
 --------------
 
 You can use the `@DateFormat` annotation to define how `Date` objects are formatted. You can choose what information you want to display (date, time or both) and you can choose between a long and a short version. The information you want to display is then formatted **according to the current locale**!
 
 ```java
-@DateFormat(format = DateFormat.Format.SHORT_DATE_TIME)
+@DateFormat(format = DateFormats.SHORT_DATE_TIME)
 @BindToView(id = R.id.textview)
 private Date date;
 ```
@@ -153,23 +175,20 @@ The code above would format a short version of both the date and time. The resul
 | German | 22.11.14 14:29 |
 | English | 11/22/14 2:29 PM | 
 
-`@DateFormat` should be used in most cases as it correctly formats the date according to the locale, but if you want to have more control over how the `Date` is formatted then you can use the `@DatePattern` annotation to supply a specific date pattern, but then it will be formatted the same way in **every** locale. The pattern follows the rules of `SimpleDateFormat` and you can look up those rules [here](http://developer.android.com/reference/java/text/SimpleDateFormat.html).
+`@DateFormat` should be used in most cases as it correctly formats the date according to the locale, but if you want to have more control over how the `Date` is formatted then you can use the `@Format` annotation to supply a specific date pattern. The pattern follows the rules of `SimpleDateFormat` and you can look up those rules [here](http://developer.android.com/reference/java/text/SimpleDateFormat.html).
 
-```java
-@DatePattern(pattern = "hh:mm:ss")
-@BindToView(id = R.id.textview)
-private Date date;
+First define the pattern you want to use as string resource:
+
+```xml
+<string name="date_pattern">hh:mm:ss</string>
 ```
 
-Number Formatting
---------------
-
-To format numbers you can use the `@NumberFormat` annotation. You have to supply it with a pattern according to the rules of the `DecimalFormat` class. You can find those rules [here](http://developer.android.com/reference/java/text/DecimalFormat.html).
+And then reference it with the `@Format` annotation.
 
 ```java
-@NumberFormat(pattern = "#.000")
+@Format(pattern = R.string.date_pattern)
 @BindToView(id = R.id.textview)
-private float number;
+private Date date;
 ```
 
 Events and Callbacks
