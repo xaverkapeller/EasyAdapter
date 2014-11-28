@@ -62,11 +62,7 @@ EasyAdapter<ViewModel> adapter = new EasyAdapter<ViewModel>(context, models);
 recyclerView.setAdapter(adapter);
 ```
 
-The result would look like this:
-
-![First example image](http://i.imgur.com/S2MeLEH.png)
-
-You can display all kinds of different view model classes in the same `RecyclerView`, just add them to the same `List` and pass that `List` to the `EasyAdapter`. The `EasyAdapter` is already optimized for efficient view recycling with many different kinds of view items. You can use the generic type parameter of `EasyAdapter` to narrow down which view model classes are allowed in the `Adapter`. `EasyAdapter<ViewModel>` allows any kind of view model class.
+You can display all kinds of different view model classes in the same `RecyclerView`, just add them to the same `List` and pass that `List` to the `EasyAdapter`. The `EasyAdapter` is already optimized for efficient view recycling with many different kinds of view items. You can use the generic type parameter of `EasyAdapter` to narrow down which view model classes are allowed in the `Adapter`. `EasyAdapter<ViewModel>` allows any kind of view model.
 
 Advanced Usage
 --------------
@@ -104,12 +100,12 @@ The deciding factor for how the data is applied is always the type of the `View`
 | --- | --- | --- | --- |
 | `String`| as text | as text | - |
 | `int` | as text resource | as text resource | as drawable resource |
-| `float` | calls `.toString()` | calls `.toString()` | - |
-| `double` | calls `.toString()` | calls `.toString()` | - |
-| `boolean` | calls `.toString()` | as checked state | - |
+| `float` | as text | as text | - |
+| `double` | as text | as text | - |
+| `boolean` | as text | as checked state | - |
 | `Drawable` | as background | as background | as image |
 | `Bitmap` | as background | as background | as image |
-| everything else | calls `.toString()` | calls `.toString()` | - |
+| everything else | as text (calls `.toString()`) | as text (calls `.toString()`) | - |
 
 Of course this is not all this library does! The `@BindToView` annotation has a second optional parameter with which you can specify how the data is supposed to be applied to the `View`. As long as you don't specify a specific way how the data is supposed to be bound then the data will be bound exactly as described in the table above. Every `View` which is not in the table above, but is a subclass of one of the `Views` above will be treated as one of those `Views`. For example an `EditText` is treated as a `TextView` in the table above and so on. All other `Views` which are not a subclass of one of the three `Views` above will not apply the data without specifying how to apply it. 
 
@@ -222,7 +218,7 @@ public void unbind(Context context) {
 }
 ```
 
-Injecting Views and custom Objects
+Injecting Views and Listeners
 --------------
 
 You can inject `View` instances into fields and methods through the use of the `@InjectView` annotation. You can then access these `View` instances in the annotated callback methods mentioned in the previous chapter. For example you can inject a `View` into a field like this:
@@ -248,7 +244,7 @@ You can also inject a `Context` instance or the `EasyAdapter` instance itself in
 private Context context;
 ```
 
-But the main use of the `@Inject` annotation is to inject custom objects into your view models. For example you can define a listener interface like this:
+But the main use of the `@Inject` annotation is to inject custom objects or listeners into your view models. For example you can define a listener interface like this:
 
 ```java
 public interface ExampleListener {
