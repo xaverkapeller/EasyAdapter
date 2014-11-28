@@ -8,7 +8,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by Xaver on 16/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 16/11/14
  */
 public class ReflectionHelper {
 

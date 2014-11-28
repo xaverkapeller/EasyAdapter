@@ -6,7 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by Xaver on 16/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 16/11/14
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

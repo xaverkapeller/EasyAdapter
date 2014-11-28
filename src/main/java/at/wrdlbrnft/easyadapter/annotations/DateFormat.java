@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import at.wrdlbrnft.easyadapter.enums.DateFormats;
+
 /**
  * Created with Android Studio
  * User: Xaver
@@ -14,14 +16,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface DateFormat {
 
-    public Format format();
+    public DateFormats format();
 
-    public static enum Format {
-        TIME,
-        DATE,
-        DATE_TIME,
-        SHORT_TIME,
-        SHORT_DATE,
-        SHORT_DATE_TIME
-    }
 }

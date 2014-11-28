@@ -1,29 +1,29 @@
 package at.wrdlbrnft.easyadapter.viewwrapper;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
-import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 import at.wrdlbrnft.easyadapter.annotations.DateFormat;
-import at.wrdlbrnft.easyadapter.annotations.DatePattern;
-import at.wrdlbrnft.easyadapter.annotations.NumberFormat;
+import at.wrdlbrnft.easyadapter.annotations.Format;
 import at.wrdlbrnft.easyadapter.helper.DateHelper;
 import at.wrdlbrnft.easyadapter.helper.TypeHelper;
 import at.wrdlbrnft.easyadapter.helper.ViewHelper;
 
 /**
- * Created by Xaver on 14/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 14/11/14
  */
 class TextViewWrapper extends BaseViewWrapper<TextView> {
 
-    public TextViewWrapper(TextView view) {
-        super(view);
+    public TextViewWrapper(Context context, TextView view) {
+        super(context, view);
     }
 
     @Override
@@ -45,11 +45,41 @@ class TextViewWrapper extends BaseViewWrapper<TextView> {
             return true;
         }
 
-        return applyText(view, field, value);
+        return applyTextResource(view, field, value) || applyText(view, field, value);
     }
 
     @Override
     protected boolean applyText(TextView view, Field field, Object value) {
+        if(value == null) {
+            view.setText("");
+            return true;
+        }
+
+        final Class<?> type = field.getType();
+
+        if(type == java.util.Date.class) {
+            final java.util.Date date = (java.util.Date) value;
+            final String text = getFormattedDate(field, date);
+            view.setText(text);
+            return true;
+        }
+
+        if(type == Calendar.class) {
+            final Calendar calendar = (Calendar) value;
+            final java.util.Date date = calendar.getTime();
+            final String text = getFormattedDate(field, date);
+            view.setText(text);
+            return true;
+        }
+
+        final String text = getFormattedString(field, value);
+        view.setText(text);
+
+        return true;
+    }
+
+    @Override
+    protected boolean applyTextResource(TextView view, Field field, Object value) {
         if(value == null) {
             view.setText("");
             return true;
@@ -62,45 +92,21 @@ class TextViewWrapper extends BaseViewWrapper<TextView> {
             return true;
         }
 
-        if(TypeHelper.isNumber(type)) {
-            final String text = getFormattedNumber(field, value);
-            view.setText(text);
-            return true;
-        }
-
-        if(type == Date.class) {
-            final Date date = (Date) value;
-            final String text = getFormattedDate(field, date);
-            view.setText(text);
-            return true;
-        }
-
-        if(type == Calendar.class) {
-            final Calendar calendar = (Calendar) value;
-            final Date date = calendar.getTime();
-            final String text = getFormattedDate(field, date);
-            view.setText(text);
-            return true;
-        }
-
-        final String text = String.valueOf(value);
-        view.setText(text);
-
-        return true;
+        return false;
     }
 
-    private String getFormattedNumber(Field field, Object number) {
-        if(field.isAnnotationPresent(NumberFormat.class)) {
-            final NumberFormat annotation = field.getAnnotation(NumberFormat.class);
-            final String pattern = annotation.pattern();
-            final DecimalFormat format = new DecimalFormat(pattern);
-            return format.format(number);
+    private String getFormattedString(Field field, Object object) {
+        if(field.isAnnotationPresent(Format.class)) {
+            final Format annotation = field.getAnnotation(Format.class);
+            final int patternId = annotation.pattern();
+            final String pattern = getResourceString(patternId);
+            return String.format(pattern, object);
         }
 
-        return String.valueOf(number);
+        return String.valueOf(object);
     }
 
-    private String getFormattedDate(Field field, Date date) {
+    private String getFormattedDate(Field field, java.util.Date date) {
         if(field.isAnnotationPresent(DateFormat.class)) {
             final DateFormat annotation = field.getAnnotation(DateFormat.class);
             switch (annotation.format()) {
@@ -112,9 +118,10 @@ class TextViewWrapper extends BaseViewWrapper<TextView> {
                 case SHORT_DATE_TIME: return DateHelper.formatShortDateTime(date);
                 default: return "";
             }
-        } else if(field.isAnnotationPresent(DatePattern.class)) {
-            final DatePattern annotation = field.getAnnotation(DatePattern.class);
-            final String pattern = annotation.pattern();
+        } else if(field.isAnnotationPresent(Format.class)) {
+            final Format annotation = field.getAnnotation(Format.class);
+            final int patternId = annotation.pattern();
+            final String pattern = getResourceString(patternId);
             return DateHelper.format(date, pattern);
         } else {
             return DateHelper.formatDateTime(date);

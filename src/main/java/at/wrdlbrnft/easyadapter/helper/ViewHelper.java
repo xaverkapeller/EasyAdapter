@@ -5,7 +5,9 @@ import android.os.Build;
 import android.view.View;
 
 /**
- * Created by Xaver on 18/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 18/11/14
  */
 public class ViewHelper {
 

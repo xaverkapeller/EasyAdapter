@@ -1,25 +1,35 @@
 package at.wrdlbrnft.easyadapter.viewwrapper;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.util.SparseArray;
 import android.view.View;
 
 import java.lang.reflect.Field;
 
+import at.wrdlbrnft.easyadapter.enums.Property;
 import at.wrdlbrnft.easyadapter.helper.TypeHelper;
 import at.wrdlbrnft.easyadapter.helper.ViewHelper;
 
 /**
- * Created by Xaver on 14/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 14/11/14
  */
 class BaseViewWrapper<T extends View> implements ViewWrapper {
 
     private final T mView;
+    private final Context mContext;
 
-    public BaseViewWrapper(T view) {
+    private final SparseArray<String> mStringCache = new SparseArray<>();
+
+    public BaseViewWrapper(Context context, T view) {
         mView = view;
+        mContext = context;
     }
 
     @Override
@@ -33,11 +43,20 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
             case TEXT:
                 return applyText(mView, field, value);
 
+            case TEXT_RESOURCE:
+                return applyTextResource(mView, field, value);
+
             case IMAGE:
                 return applyImage(mView, field, value);
 
+            case IMAGE_RESOURCE:
+                return applyImageResource(mView, field, value);
+
             case BACKGROUND:
                 return applyBackground(mView, field, value);
+
+            case BACKGROUND_RESOURCE:
+                return applyBackgroundResource(mView, field, value);
 
             case BACKGROUND_COLOR:
                 return applyBackgroundColor(mView, field, value);
@@ -77,9 +96,54 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
         }
     }
 
+    protected boolean applyBackgroundResource(T view, Field field, Object value) {
+
+        if (value == null) {
+            ViewHelper.setBackground(view, null);
+            return true;
+        }
+
+        final Class<?> type = field.getType();
+
+        if (TypeHelper.isInteger(type)) {
+            view.setBackgroundResource((Integer) value);
+            return true;
+        }
+
+        return false;
+    }
+
+    protected boolean applyImageResource(T view, Field field, Object value) {
+        return false;
+    }
+
+    protected boolean applyTextResource(T view, Field field, Object value) {
+        return false;
+    }
+
     @Override
     public View getView() {
         return mView;
+    }
+
+    protected Context getContext() {
+        return mContext;
+    }
+
+    protected String getResourceString(int resId) {
+        final String string = mStringCache.get(resId, null);
+        if(string != null) {
+            return string;
+        }
+
+        final String newString = mContext.getString(resId);
+        if(newString == null) {
+            mStringCache.put(resId, "");
+            return "";
+        }
+
+        mStringCache.put(resId, newString);
+        return newString;
     }
 
     protected boolean applyAutoDetect(T view, Field field, Object value) {
@@ -100,7 +164,7 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
 
     protected boolean applyBackground(T view, Field field, Object value) {
 
-        if(value == null) {
+        if (value == null) {
             ViewHelper.setBackground(view, null);
             return true;
         }
@@ -117,16 +181,11 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
             return true;
         }
 
-        if (TypeHelper.isInteger(type)) {
-            view.setBackgroundResource((Integer) value);
-            return true;
-        }
-
         return false;
     }
 
     protected boolean applyBackgroundColor(T view, Field field, Object value) {
-        if(value == null) {
+        if (value == null) {
             view.setBackgroundColor(Color.TRANSPARENT);
             return true;
         }
@@ -142,7 +201,7 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
     }
 
     protected boolean applyAlpha(T view, Field field, Object value) {
-        if(value == null) {
+        if (value == null) {
             view.setAlpha(0.0f);
             return true;
         }
@@ -212,16 +271,19 @@ class BaseViewWrapper<T extends View> implements ViewWrapper {
     }
 
     protected boolean applyTranslationZ(T view, Field field, Object value) {
-        if (value == null) {
-            view.setTranslationZ(0.0f);
-            return true;
-        }
 
-        final Class<?> type = field.getType();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (value == null) {
+                view.setTranslationZ(0.0f);
+                return true;
+            }
 
-        if (TypeHelper.isNumber(type)) {
-            view.setTranslationZ((Float) value);
-            return true;
+            final Class<?> type = field.getType();
+
+            if (TypeHelper.isNumber(type)) {
+                view.setTranslationZ((Float) value);
+                return true;
+            }
         }
 
         return false;

@@ -8,10 +8,10 @@ import java.lang.annotation.Target;
 /**
  * Created with Android Studio
  * User: Xaver
- * Date: 22/11/14
+ * Date: 28/11/14
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface DatePattern {
-    public String pattern();
+public @interface Format {
+    public int pattern();
 }

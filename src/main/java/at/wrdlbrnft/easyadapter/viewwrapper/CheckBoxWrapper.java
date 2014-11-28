@@ -1,5 +1,6 @@
 package at.wrdlbrnft.easyadapter.viewwrapper;
 
+import android.content.Context;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
@@ -8,12 +9,14 @@ import java.lang.reflect.Field;
 import at.wrdlbrnft.easyadapter.helper.TypeHelper;
 
 /**
- * Created by Xaver on 14/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 14/11/14
  */
 class CheckBoxWrapper extends TextViewWrapper {
 
-    public CheckBoxWrapper(CheckBox view) {
-        super(view);
+    public CheckBoxWrapper(Context context, CheckBox view) {
+        super(context, view);
     }
 
     @Override

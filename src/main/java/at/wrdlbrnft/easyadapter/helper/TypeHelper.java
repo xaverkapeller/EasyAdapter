@@ -1,7 +1,9 @@
 package at.wrdlbrnft.easyadapter.helper;
 
 /**
- * Created by Xaver on 17/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 17/11/14
  */
 public class TypeHelper {
 

@@ -23,12 +23,14 @@ import at.wrdlbrnft.easyadapter.annotations.OnUnbind;
 import at.wrdlbrnft.easyadapter.exceptions.AnnotationMismatchException;
 import at.wrdlbrnft.easyadapter.helper.ReflectionHelper;
 import at.wrdlbrnft.easyadapter.model.ViewModel;
-import at.wrdlbrnft.easyadapter.viewwrapper.Property;
+import at.wrdlbrnft.easyadapter.enums.Property;
 import at.wrdlbrnft.easyadapter.viewwrapper.ViewWrapper;
 
 /**
-* Created by Xaver on 16/11/14.
-*/
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 16/11/14
+ */
 class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder {
 
     private final SparseArray<ViewWrapper> mViewWrappers = new SparseArray<ViewWrapper>();
@@ -226,7 +228,7 @@ class AnnotationViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder 
         }
 
         final View newView = itemView.findViewById(id);
-        final ViewWrapper newWrapper = ViewWrapper.Factory.wrap(newView);
+        final ViewWrapper newWrapper = ViewWrapper.Factory.wrap(mContext, newView);
         mViewWrappers.put(id, newWrapper);
 
         return newWrapper;

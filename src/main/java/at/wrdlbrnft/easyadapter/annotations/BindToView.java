@@ -5,10 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import at.wrdlbrnft.easyadapter.viewwrapper.Property;
+import at.wrdlbrnft.easyadapter.enums.Property;
 
 /**
- * Created by Xaver on 31/10/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 31/10/14
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

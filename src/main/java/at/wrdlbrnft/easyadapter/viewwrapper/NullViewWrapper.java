@@ -4,8 +4,12 @@ import android.view.View;
 
 import java.lang.reflect.Field;
 
+import at.wrdlbrnft.easyadapter.enums.Property;
+
 /**
- * Created by Xaver on 16/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 16/11/14
  */
 class NullViewWrapper implements ViewWrapper {
 

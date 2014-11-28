@@ -1,13 +1,18 @@
-package at.wrdlbrnft.easyadapter.viewwrapper;
+package at.wrdlbrnft.easyadapter.enums;
 
 /**
- * Created by Xaver on 14/11/14.
+ * Created with Android Studio
+ * User: Xaver
+ * Date: 14/11/14
  */
 public enum Property {
     AUTO_DETECT,
     TEXT,
+    TEXT_RESOURCE,
     IMAGE,
+    IMAGE_RESOURCE,
     BACKGROUND,
+    BACKGROUND_RESOURCE,
     BACKGROUND_COLOR,
     ALPHA,
     VISIBILITY,
