@@ -244,7 +244,7 @@ You can also inject a `Context` instance or the `EasyAdapter` instance itself in
 private Context context;
 ```
 
-But the main use of the `@Inject` annotation is to inject custom objects into your view models. For example you can define a listener interface like this:
+But the main use of the `@Inject` annotation is to inject custom objects or listeners into your view models. For example you can define a listener interface like this:
 
 ```java
 public interface ExampleListener {
