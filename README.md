@@ -38,7 +38,7 @@ public class ExampleModel implements ViewModel {
     private final String text;
     private final int drawableRes;
 
-    public ExampleModelOne(String text, int drawableRes) {
+    public ExampleModel(String text, int drawableRes) {
         this.text = text;
         this.drawableRes = drawableRes;
     }
@@ -67,11 +67,13 @@ And that is all you have to do! The rest is handled by the library. You can then
 ```java
 final List<ViewModel> models = new ArrayList<>();
 for (int i = 0; i < 100; i++) {
-    models.add(new ExampleModelOne(String.valueOf(i), R.drawable.some_background));
+    models.add(new ExampleModel(String.valueOf(i), R.drawable.some_background));
 }
 
 EasyAdapter<ViewModel> adapter = new EasyAdapter<>(getActivity(), models);
 ```
+
+You can look at the example application contained in this repository for a more detailed demonstration of how to use this library!
 
 # Installation
 
