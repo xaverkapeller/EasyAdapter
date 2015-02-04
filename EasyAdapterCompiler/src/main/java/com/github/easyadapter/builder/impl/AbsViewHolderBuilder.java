@@ -19,8 +19,13 @@ import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 
 /**
@@ -72,6 +77,7 @@ public abstract class AbsViewHolderBuilder {
     public static final Type TYPE_ABS_VIEW_HOLDER = Types.create("com.github.easyadapter.impl", "AbsViewHolder", EnumSet.of(Modifier.PUBLIC, Modifier.ABSTRACT), Types.Android.RECYCLERVIEW_VIEWHOLDER);
     public static final Type TYPE_ABS_VIEW_HOLDER_FACTORY = Types.create("com.github.easyadapter.impl", "AbsViewHolderFactory", EnumSet.of(Modifier.PUBLIC, Modifier.ABSTRACT), Types.OBJECT);
     public static final Type TYPE_INJECTOR = Types.create("com.github.easyadapter.EasyAdapter", "Injector", EnumSet.of(Modifier.PUBLIC), Types.OBJECT);
+    public static final Type TYPE_VIEWMODEL = Types.create("com.github.easyadapter.api", "ViewModel", EnumSet.of(Modifier.PUBLIC), Types.OBJECT);
 
     private final ProcessingEnvironment mEnvironment;
     private final TypeElement mElement;
@@ -184,6 +190,10 @@ public abstract class AbsViewHolderBuilder {
 
         final Type modelType = Types.create(mElement);
         final int layoutId = getLayoutId(mElement);
+
+        if(!implementsViewModel(mElement)) {
+            mEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, mElement.getQualifiedName().toString() + " does not implement the ViewModel interface! All view models have to implement it.", mElement);
+        }
 
         final String viewHolderName = modelType.className() + "$$ViewHolder";
 
@@ -410,6 +420,75 @@ public abstract class AbsViewHolderBuilder {
         });
 
         factoryBuilder.build();
+    }
+
+    protected String executeMethod(Variable target, ExecutableElement method) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(target.name()).append(".").append(method.getSimpleName()).append("(");
+
+        final List<? extends VariableElement> parameters = method.getParameters();
+        for (int i = 0, parametersSize = parameters.size(); i < parametersSize; i++) {
+            final VariableElement parameter = parameters.get(i);
+            final Type parameterType = Types.create(parameter.asType());
+
+            if(i > 0) {
+                builder.append(", ");
+            }
+
+            final AnnotationValue viewIdValue = getAnnotationValue(parameter, Annotations.INJECT_VIEW, "value");
+            if (viewIdValue != null) {
+                final int viewId = (int) viewIdValue.getValue();
+                try {
+                    builder.append(view(viewId, parameterType));
+                } catch (ViewTypeMismatchException e) {
+                    mEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "You are assuming the same View to have two conflicting types! You previously assumed it was " + e.getTypeA() + " but now you are assuming it is a " + e.getTypeB(), method);
+                }
+            } else if(hasAnnotation(parameter, Annotations.INJECT)) {
+                builder.append(requestInjectedObject(parameterType));
+            } else {
+                mEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not statisfy all the parameters of " + method.getSimpleName(), method);
+            }
+        }
+
+        builder.append(")");
+
+        return builder.toString();
+    }
+
+    protected AnnotationValue getAnnotationValue(Element element, String annotationClass, String name) {
+        final List<? extends AnnotationMirror> mirrors = element.getAnnotationMirrors();
+        for (AnnotationMirror mirror : mirrors) {
+            if (mirror.getAnnotationType().toString().equals(annotationClass)) {
+                final Map<? extends ExecutableElement, ? extends AnnotationValue> map = mirror.getElementValues();
+                final Set<? extends ExecutableElement> keySet = map.keySet();
+                for (ExecutableElement key : keySet) {
+                    if (key.getSimpleName().toString().equals(name)) {
+                        return map.get(key);
+                    }
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
+    protected boolean hasAnnotation(Element element, String annotationClass) {
+        final List<? extends AnnotationMirror> mirrors = element.getAnnotationMirrors();
+        for (AnnotationMirror mirror : mirrors) {
+            if (mirror.getAnnotationType().toString().equals(annotationClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean implementsViewModel(TypeElement element) {
+        for(TypeMirror mirror : element.getInterfaces()) {
+            if(mirror.toString().equals(TYPE_VIEWMODEL.fullClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int getLayoutId(TypeElement model) throws Exception {
