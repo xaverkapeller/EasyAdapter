@@ -105,6 +105,17 @@ compile project(':EasyAdapter')
 
 And that is it! Now just sync your gradle files and begin annotating your models.
 
+# Proguard
+
+If you use proguard then you need to add these rules to your proguard file:
+
+```
+-keep class **$$ViewHolder { *; }
+-keep class **$$ViewHolderFactory { *; }
+-keep class com.github.easyadapter.annotations.** { *; }
+-keep @com.github.easyadapter.annotations.Layout public class * { *; }
+```
+
 # Advanced Usage
 
 Under construction...
