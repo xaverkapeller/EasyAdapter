@@ -8,6 +8,7 @@ import com.github.easyadapter.builder.api.elements.Variable;
  * Date: 09/12/14
  */
 public interface CodeBlock extends BlockBuilder {
+
     public CodeBlock append(String value);
     public CodeBlock append(int value);
     public CodeBlock append(long value);
@@ -21,4 +22,5 @@ public interface CodeBlock extends BlockBuilder {
     public CodeBlock appendStatement(String statement);
     public If newIf();
     public If newIf(String comparison);
+    public <T> Switch<T> newSwitch(Variable variable);
 }

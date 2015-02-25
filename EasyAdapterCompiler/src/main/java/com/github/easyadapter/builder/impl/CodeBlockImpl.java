@@ -3,6 +3,7 @@ package com.github.easyadapter.builder.impl;
 import com.github.easyadapter.builder.api.code.BlockBuilder;
 import com.github.easyadapter.builder.api.code.CodeBlock;
 import com.github.easyadapter.builder.api.code.If;
+import com.github.easyadapter.builder.api.code.Switch;
 import com.github.easyadapter.builder.api.elements.Variable;
 
 import java.util.ArrayList;
@@ -83,6 +84,13 @@ class CodeBlockImpl implements CodeBlock {
         final IfImpl stub = new IfImpl();
         mParts.add(new BlockBuilderImpl(stub));
         stub.comparison().append(comparison);
+        return stub;
+    }
+
+    @Override
+    public <T> Switch<T> newSwitch(Variable variable) {
+        final SwitchImpl<T> stub = new SwitchImpl<>(variable);
+        mParts.add(new BlockBuilderImpl(stub));
         return stub;
     }
 

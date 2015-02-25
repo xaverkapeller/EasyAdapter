@@ -50,7 +50,7 @@ class VariableImpl implements Variable {
         if(mModifiers.contains(Modifier.FINAL)) {
             builder.append("final ");
         }
-        builder.append(mType.fullClassName()).append(" ");
+        builder.append(mType.className()).append(" ");
         builder.append(mName);
         return builder.toString();
     }

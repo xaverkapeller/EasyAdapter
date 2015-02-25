@@ -54,6 +54,7 @@ public class MainFragment extends Fragment implements ExampleListener {
 
         this.adapter = new EasyAdapter<>(getActivity(), models, this);
         this.recyclerView.setAdapter(this.adapter);
+        this.recyclerView.setHasFixedSize(true);
         this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 

@@ -1,6 +1,7 @@
 package com.github.easyadapter.builder.impl;
 
 import com.github.easyadapter.builder.api.elements.Type;
+import com.github.easyadapter.builder.api.elements.Variable;
 
 import java.util.Set;
 
@@ -70,7 +71,7 @@ class TypeImpl implements Type {
                     builder.append(", ");
                 }
 
-                builder.append(type.fullClassName());
+                builder.append(type.className());
             }
         } else {
             builder.append("?");
@@ -81,8 +82,61 @@ class TypeImpl implements Type {
     }
 
     @Override
+    public Type nonGenericVersion() {
+        final int genericIndex = mClassName.indexOf("<");
+        if(genericIndex >= 0) {
+            return new TypeImpl(mPackageName, mClassName.substring(0, genericIndex), mModifiers, mParent);
+        }
+
+        return this;
+    }
+
+    @Override
+    public String newInstance(String... parameters) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("new ").append(mClassName).append("(");
+
+        for (int i = 0, count = parameters.length; i < count; i++) {
+            final String parameter = parameters[i];
+
+            if(i > 0) {
+                builder.append(", ");
+            }
+
+            builder.append(parameter);
+        }
+
+        builder.append(")");
+        return builder.toString();
+    }
+
+    @Override
+    public String newInstance(Variable... parameters) {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("new ").append(mClassName).append("(");
+
+        for (int i = 0, count = parameters.length; i < count; i++) {
+            final Variable parameter = parameters[i];
+
+            if(i > 0) {
+                builder.append(", ");
+            }
+
+            builder.append(parameter.name());
+        }
+
+        builder.append(")");
+        return builder.toString();
+    }
+
+    @Override
+    public String toClass() {
+        return mClassName + ".class";
+    }
+
+    @Override
     public String toString() {
-        return mFullClassName;
+        return mClassName;
     }
 
     @Override
@@ -90,8 +144,9 @@ class TypeImpl implements Type {
 
         if(obj instanceof Type) {
             final Type otherType = (Type) obj;
-            final String otherClassName = otherType.fullClassName();
-            return mFullClassName.equals(otherClassName);
+            final Type a = this.nonGenericVersion();
+            final Type b = otherType.nonGenericVersion();
+            return a.fullClassName().equals(b.fullClassName());
         }
 
         return false;

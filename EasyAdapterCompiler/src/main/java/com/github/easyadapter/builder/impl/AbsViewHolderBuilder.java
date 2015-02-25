@@ -13,6 +13,7 @@ import com.github.easyadapter.builder.api.elements.Variable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -197,7 +198,9 @@ public abstract class AbsViewHolderBuilder {
 
         final String viewHolderName = modelType.className() + "$$ViewHolder";
 
+        final Set<Type> implementedTypes = new HashSet<>();
         mBuilder = new ClassBuilder(mEnvironment, viewHolderName);
+        mBuilder.setImplements(implementedTypes);
         mBuilder.setPackageName(modelType.packageName());
         mBuilder.setExtends(TYPE_ABS_VIEW_HOLDER.genericVersion(modelType));
         mBuilder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
@@ -356,6 +359,9 @@ public abstract class AbsViewHolderBuilder {
         factoryBuilder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
         factoryBuilder.setExtends(TYPE_ABS_VIEW_HOLDER_FACTORY.genericVersion(modelType));
 
+        factoryBuilder.addImport(viewHolderType);
+        factoryBuilder.addImport(Types.Android.Views.VIEW);
+
         final Field fieldInflater = factoryBuilder.addField(Types.Android.LAYOUT_INFLATER, EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
 
         final Map<Type, Field> factoryFieldMap = new HashMap<>();
@@ -408,7 +414,7 @@ public abstract class AbsViewHolderBuilder {
             public void writeBody(CodeBlock code, VariableGenerator generator) {
                 Variable varView = generator.generate(Types.Android.Views.VIEW, Modifier.FINAL);
                 code.append(varView.initialize()).append(" = ").append(fieldInflater).append(".inflate(").append(layoutId).append(", ").append(paramViewGroup).append(", ").append(false).append(");\n");
-                code.append("return new ").append(viewHolderType.fullClassName()).append("(").append(varView);
+                code.append("return new ").append(viewHolderType).append("(").append(varView);
 
                     for(Type type : injectedTypes) {
                         final Field field = factoryFieldMap.get(type);

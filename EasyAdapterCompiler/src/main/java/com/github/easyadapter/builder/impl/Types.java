@@ -3,6 +3,8 @@ package com.github.easyadapter.builder.impl;
 import com.github.easyadapter.builder.api.elements.Type;
 import com.github.easyadapter.utils.Utils;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +27,17 @@ public class Types {
     public static final Type MAP = create("java.util", "Map", EnumSet.of(Modifier.PUBLIC), OBJECT);
     public static final Type CLASS = create("java.lang", "Class", EnumSet.of(Modifier.PUBLIC), OBJECT);
     public static final Type STRING = create(String.class);
+    public static final Type DATE = create(Date.class);
+    public static final Type CALENDAR = create(Calendar.class);
+
+    public static final Set<Type> PRIMITIVE_TYPES = new HashSet<Type>() {{
+        add(Primitives.VOID);
+        add(Primitives.FLOAT);
+        add(Primitives.INTEGER);
+        add(Primitives.LONG);
+        add(Primitives.BOOLEAN);
+        add(Primitives.DOUBLE);
+    }};
 
     public static class Primitives {
 
@@ -33,6 +46,7 @@ public class Types {
         public static final Type INTEGER = create(int.class);
         public static final Type LONG = create(long.class);
         public static final Type BOOLEAN = create(boolean.class);
+        public static final Type DOUBLE = create(double.class);
     }
 
     public static class Boxed {
@@ -42,7 +56,7 @@ public class Types {
         public static final Type INTEGER = create(Integer.class);
         public static final Type LONG = create(Long.class);
         public static final Type BOOLEAN = create(Boolean.class);
-
+        public static final Type DOUBLE = create(Double.class);
     }
 
     public static class Android {

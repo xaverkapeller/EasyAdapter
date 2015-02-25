@@ -17,4 +17,9 @@ public interface Type {
     public Set<Modifier> modifiers();
     public boolean isSuperTypeOf(Type type);
     public Type genericVersion(Type... genericTypes);
+    public Type nonGenericVersion();
+
+    public String newInstance(String... parameters);
+    public String newInstance(Variable... parameters);
+    public String toClass();
 }

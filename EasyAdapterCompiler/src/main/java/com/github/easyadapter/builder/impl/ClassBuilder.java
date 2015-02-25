@@ -1,4 +1,5 @@
 package com.github.easyadapter.builder.impl;
+
 import com.github.easyadapter.builder.api.builder.ExecutableBuilder;
 import com.github.easyadapter.builder.api.elements.Constructor;
 import com.github.easyadapter.builder.api.elements.Field;
@@ -9,6 +10,8 @@ import com.github.easyadapter.utils.Utils;
 import com.squareup.javawriter.JavaWriter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -29,8 +32,10 @@ public class ClassBuilder {
     private String mClassName;
     private String mPackageName = "";
     private Set<Modifier> mModifiers = new HashSet<Modifier>();
+    private Set<Type> mImports = new HashSet<>();
     private Type mExtends = null;
     private Set<Type> mImplements = new HashSet<Type>();
+    private final List<ClassBuilder> mSubClassBuilders = new ArrayList<>();
 
     private final VariableGenerator mFieldGenerator = new VariableGenerator();
 
@@ -58,6 +63,11 @@ public class ClassBuilder {
         return this;
     }
 
+    public ClassBuilder addImport(Type type) {
+        mImports.add(type);
+        return this;
+    }
+
     public ClassBuilder setModifiers(Set<Modifier> modifiers) {
         mModifiers = modifiers;
         return this;
@@ -65,35 +75,47 @@ public class ClassBuilder {
 
     public ClassBuilder setExtends(Type type) {
         mExtends = type;
+        mImports.add(type);
         return this;
     }
 
     public ClassBuilder setImplements(Set<Type> types) {
         mImplements = types;
+        mImports.addAll(types);
         return this;
     }
 
     public Field addField(Type type, String name, Set<Modifier> modifiers) {
         final FieldImpl field = new FieldImpl(name, type, modifiers);
         mFields.add(field);
+        mImports.add(type);
         return field;
     }
 
     public Field addField(Type type, Set<Modifier> modifiers) {
         final FieldImpl field = new FieldImpl(mFieldGenerator.generateName(), type, modifiers);
         mFields.add(field);
+        mImports.add(type);
         return field;
     }
 
     public Method addMethod(Type returnType, String name, Set<Modifier> modifiers, List<Variable> parameters) {
         final MethodImpl method = new MethodImpl(returnType, name, parameters, modifiers);
         mMethods.add(method);
+        for(Variable parameter : parameters) {
+            mImports.add(parameter.type());
+        }
+        mImports.add(returnType);
         return method;
     }
 
     public Method addMethod(Type returnType, String name, Set<Modifier> modifiers, ExecutableBuilder builder) {
         final VariableGenerator generator = new VariableGenerator();
         final List<Variable> parameters = builder.createParameterList(generator);
+        for(Variable parameter : parameters) {
+            mImports.add(parameter.type());
+        }
+        mImports.add(returnType);
         final MethodImpl method = new MethodImpl(returnType, name, parameters, modifiers);
         mMethods.add(method);
         builder.writeBody(method.code(), generator);
@@ -102,6 +124,9 @@ public class ClassBuilder {
 
     public Constructor addConstructor(Set<Modifier> modifiers, List<Variable> parameters) {
         final ConstructorImpl constructor = new ConstructorImpl(parameters, modifiers);
+        for(Variable parameter : parameters) {
+            mImports.add(parameter.type());
+        }
         mConstructors.add(constructor);
         return constructor;
     }
@@ -115,6 +140,9 @@ public class ClassBuilder {
     public Constructor addConstructor(Set<Modifier> modifiers, ExecutableBuilder builder) {
         final VariableGenerator generator = new VariableGenerator();
         final List<Variable> parameters = builder.createParameterList(generator);
+        for(Variable parameter : parameters) {
+            mImports.add(parameter.type());
+        }
         final ConstructorImpl constructor = new ConstructorImpl(parameters, modifiers);
         mConstructors.add(constructor);
         builder.writeBody(constructor.code(), generator);
@@ -127,22 +155,57 @@ public class ClassBuilder {
 
         int i = 0;
         for (Type type : mImplements) {
-            array[i++] = type.fullClassName();
+            array[i++] = type.className();
         }
 
         return array;
+    }
+
+    public ClassBuilder addSubClass(String className) {
+        final ClassBuilder builder = new ClassBuilder(mEnvironment, className);
+        mSubClassBuilders.add(builder);
+        return builder;
     }
 
     public Type build() throws IOException {
         final JavaWriter writer = Utils.createWriter(mEnvironment, mClassName);
         writer.emitPackage(mPackageName);
 
+        final Type type = writeType(writer);
+
+        writer.close();
+
+        return type;
+    }
+
+    protected Set<String> getImports() {
+        final Set<String> imports = new HashSet<>();
+
+        mImports.removeAll(Types.PRIMITIVE_TYPES);
+
+        for(Type type : mImports) {
+            if(type != null) {
+                imports.add(type.nonGenericVersion().fullClassName());
+            }
+        }
+
+        return imports;
+    }
+
+    protected Type writeType(JavaWriter writer) throws IOException {
         final String[] implementedInterfaces = getImplementedInterfacesArray();
 
-        writer.beginType(mClassName, "class", EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), mExtends != null ? mExtends.fullClassName() : null, implementedInterfaces);
+        final Set<String> imports = getImports();
+        for(ClassBuilder subClassBuilder : mSubClassBuilders) {
+            imports.addAll(subClassBuilder.getImports());
+        }
+
+        writer.emitImports(imports);
+
+        writer.beginType(mClassName, "class", mModifiers, mExtends != null ? mExtends.className() : null, implementedInterfaces);
 
         for (FieldImpl field : mFields) {
-            final String type = field.type().fullClassName();
+            final String type = field.type().className();
             final String name = field.name();
             final Set<Modifier> modifiers = field.modifiers();
             final String initialValue = field.initialValue();
@@ -165,10 +228,10 @@ public class ClassBuilder {
                 final Type type = parameter.type();
 
                 if(parameter.modifiers().contains(Modifier.FINAL)) {
-                    parameterArray[i * 2] = "final " + type.fullClassName();
+                    parameterArray[i * 2] = "final " + type.className();
                     parameterArray[i * 2 + 1] = parameter.name();
                 } else {
-                    parameterArray[i * 2] = type.fullClassName();
+                    parameterArray[i * 2] = type.className();
                     parameterArray[i * 2 + 1] = parameter.name();
                 }
             }
@@ -183,10 +246,9 @@ public class ClassBuilder {
 
         for(MethodImpl method : mMethods) {
             final String name = method.name();
-            final String returnType = method.returnType() != null ? method.returnType().fullClassName() : "void";
             final Set<Modifier> modifiers = method.modifiers();
             final List<Variable> parameters = method.parameters();
-
+            final String returnType = method.returnType() != null ? method.returnType().className() : "void";
             final String[] parameterArray = new String[parameters.size() * 2];
 
             for (int i = 0, length = parameters.size(); i < length; i++) {
@@ -194,10 +256,10 @@ public class ClassBuilder {
                 final Type type = parameter.type();
 
                 if(parameter.modifiers().contains(Modifier.FINAL)) {
-                    parameterArray[i * 2] = "final " + type.fullClassName();
+                    parameterArray[i * 2] = "final " + type.className();
                     parameterArray[i * 2 + 1] = parameter.name();
                 } else {
-                    parameterArray[i * 2] = type.fullClassName();
+                    parameterArray[i * 2] = type.className();
                     parameterArray[i * 2 + 1] = parameter.name();
                 }
             }
@@ -211,8 +273,11 @@ public class ClassBuilder {
             writer.endMethod();
         }
 
+        for(ClassBuilder subClassBuilder : mSubClassBuilders) {
+            subClassBuilder.writeType(writer);
+        }
+
         writer.endType();
-        writer.close();
 
         return new TypeImpl(mPackageName, mClassName, mModifiers, mExtends != null ? mExtends : Types.OBJECT);
     }
