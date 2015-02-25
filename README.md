@@ -201,7 +201,7 @@ public void bind(@Inject Context context, @Inject EasyAdapter adapter) {
 }
 ```
 
-## Custom Bind/Unbind Behaviour
+## Reacting to Bind and Unbind Events
 
 Any method annotated with `@OnBind` will be called each time the model is bound to a `View`. You can use this to implement custom behaviour or features which are not covered by the `@BindToView` annotation. 
 
