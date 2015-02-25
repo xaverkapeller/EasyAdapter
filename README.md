@@ -11,7 +11,7 @@ A powerful yet lightweight view injection &amp; list creation library to easily 
 * [Installation](#installation)
 * [Proguard](#proguard)
 * [Advanced Usage](#advanced-usage)
-  * [@BindToView and View Types](#@bindtoview-and-view-types)
+  * [Binding Values to Views](#binding-values-to-views)
   * [Injecting Views](#injecting-views)
   * [Injecting Listeners or custom Objects](#injecting-listeners-or-custom-objects)
   * [Reacting to Bind and Unbind Events](#reacting-to-bind-and-unbind-events)
@@ -133,7 +133,7 @@ If you use proguard then you need to add these rules to your proguard file:
 
 # Advanced Usage
 
-## @BindToView and View Types
+## Binding Values to Views
 
 It is impossible for the annotation processor to know the type of your views at compile time. If you don't specify what kind of data the method returns by setting the `property` value of the `@BindToView` annotation the annotation processor has to make certain assumptions about the type of your views based on the return type of your getters. 
 
