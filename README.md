@@ -1,8 +1,8 @@
 # EasyAdapter
 
-A powerful yet lightweight view injection &amp; list creation library to easily and quickly create complex lists in the RecyclerView on Android.
-* **No slow reflection, full performance**: `EasyAdapter` uses compile time annotation processing to generate your view holder implementations for you. No performance hit due to reflection at runtime.
-* **Most errors caught at compile time**: `EasyAdapter` will check for most common errors at compile time and give you useful and detailed error messages.
+A powerful yet lightweight view injection &amp; list creation library to easily and quickly create complex lists in the `RecyclerView` on Android.
+* **No slow reflection, full performance**: EasyAdapter uses compile time annotation processing to generate your view holder implementations for you. No performance hit due to reflection at runtime.
+* **Most errors caught at compile time**: EasyAdapter will check for most common errors at compile time and give you useful and detailed error messages.
 * **Generates real debuggable code**: You can view the view holder and view holder factory implementations at any time and debug any error and behaviour. No more guessing what went wrong.
 
 # Table of Contents
