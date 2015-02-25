@@ -332,51 +332,53 @@ public class ExampleModelOne implements ViewModel {
 The annotation processor then creates a view holder which looks something like this:
 
 ```java
-public final class ExampleModelOne$$ViewHolder extends com.github.easyadapter.impl.AbsViewHolder<ExampleModelOne> {
-  private final android.widget.TextView _a;
-  private final android.view.View _b;
-  private final ExampleListener _c;
-  public ExampleModelOne$$ViewHolder(android.view.View a, ExampleListener b) {
-    super(a);
+public final class ExampleModelOne$$ViewHolder extends AbsViewHolder<ExampleModelOne> {
+    private final TextView _a;
+    private final ExampleListener _c;
+    private final View _b;
+
+    public ExampleModelOne$$ViewHolder(View a, ExampleListener b) {
+        super(a);
         _c = b;
         _b = itemView.findViewById(2131230785);
-        _a = (android.widget.TextView) itemView.findViewById(2131230786);
-        ;
-  }
-  protected void performUnbind(final ExampleModelOne a) {
-    _b.setOnClickListener(null);
-        ;
-  }
-  protected void performBind(final ExampleModelOne a) {
-    _a.setText(a.getText());
+        _a = (TextView) itemView.findViewById(2131230786);
+    }
+
+    protected void performUnbind(final ExampleModelOne a) {
+        _b.setOnClickListener(null);
+    }
+
+    protected void performBind(final ExampleModelOne a) {
+        _a.setText(a.getText());
         _b.setBackgroundResource(a.getBackground());
         _b.setOnClickListener(new android.view.View.OnClickListener() {
-        	@Override
-        	public void onClick(android.view.View view) {
-        a.onClick(_c);
-        	}
+            @Override
+            public void onClick(android.view.View view) {
+                a.onClick(_c);
+            }
         });
-        ;
-  }
+    }
 }
 ```
 
 And a factory class like this:
 
 ```java
-public final class ExampleModelOne$$ViewHolderFactory extends com.github.easyadapter.impl.AbsViewHolderFactory<ExampleModelOne> {
-  private final android.view.LayoutInflater _a;
-  private final ExampleListener _b;
-  public ExampleModelOne$$ViewHolderFactory(android.view.LayoutInflater a, com.github.easyadapter.EasyAdapter.Injector b) {
-    super(a, b);
+public final class ExampleModelOne$$ViewHolderFactory extends AbsViewHolderFactory<ExampleModelOne> {
+    private final LayoutInflater _a;
+    private final ExampleListener _b;
+
+    public ExampleModelOne$$ViewHolderFactory(LayoutInflater a, Injector b) {
+        super(a, b);
         _a = a;
-        _b = b.get(com.github.easyadapter.app.models.ExampleListener.class);
+        _b = b.get(ExampleListener.class);
         ;
-  }
-  public com.github.easyadapter.impl.AbsViewHolder<ExampleModelOne> newInstance(android.view.ViewGroup a) {
-    final android.view.View b = _a.inflate(2130903065, a, false);
-        return new com.github.easyadapter.app.models.ExampleModelOne$$ViewHolder(b, _b);
-  }
+    }
+
+    public AbsViewHolder<ExampleModelOne> newInstance(ViewGroup a) {
+        final View b = _a.inflate(2130903065, a, false);
+        return new ExampleModelOne$$ViewHolder(b, _b);
+    }
 }
 ```
 
