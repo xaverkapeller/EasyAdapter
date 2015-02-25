@@ -1,10 +1,25 @@
 # EasyAdapter
 
 A powerful yet lightweight view injection &amp; list creation library to easily and quickly create complex lists in the RecyclerView on Android.
+* **No slow reflection, full performance**: `EasyAdapter` uses compile time annotation processing to generate your view holder implementations for you. No performance hit due to reflection at runtime.
+* **Most errors caught at compile time**: `EasyAdapter` will check for most common errors at compile time and give you useful and detailed error messages.
+* **Generates real debuggable code**: You can view the view holder and view holder factory implementations at any time and debug any error and behaviour. No more guessing what went wrong.
 
-Instead of slow reflection `EasyAdapter` uses compile time annotation processing so there will be no performance hit at runtime. For most errors you will get appropriate error messages while compiling your app instead of at runtime.
+# Table of Contents
 
-# How to use it
+* [Basic Usage](#basic-usage)
+* [Installation](#installation)
+* [Proguard](#proguard)
+* [Advanced Usage](#advanced-usage)
+  * [@BindToView and View Types](#@bindtoview-and-view-types)
+  * [Injecting Views](#injecting-views)
+  * [Injecting Listeners or custom Objects](#injecting-listeners-or-custom-objects)
+  * [Reacting to Bind and Unbind Events](#reacting-to-bind-and-unbind-events)
+  * [Reacting to Click Events](#reacting-to-click-events)
+  * [Reacting to Checked Changed Events](#reacting-to-checked-changed-events)
+* [How it Works](#how-it-works)
+
+# Basic Usage
 
 First create the layout file for the items in your `RecyclerView`:
 
@@ -118,7 +133,117 @@ If you use proguard then you need to add these rules to your proguard file:
 
 # Advanced Usage
 
-Under construction...
+## @BindToView and View Types
+
+It is impossible for the annotation processor to know the type of your views at compile time. If you don't specify what kind of data the method returns by setting the `property` value of the `@BindToView` annotation the annotation processor has to make certain assumptions about the type of your views based on the return type of your getters. 
+
+| Return Type  | Assumed Type of Data | Assumed View Type |
+| ------------- | ------------- |  ------------- |
+| `String` | Text | `TextView` |
+| `int` or `Integer` | String Resource ID | `TextView`  |
+| `boolean` or `Boolean` | Checked State | `CheckBox`  |
+| `Drawable` | Image | `ImageView` |
+| Everything else | Text (calls `.toString()`) | `TextView` |
+
+By specifing the `property` value of the `@BindToView` annotation you can tell `EasyAdapter` what kind of data your method returns. The following table lists all possible `property` values and the required view types for those values.
+
+| `property` value | Assumed Type of Data | Required View Type | Possible Return Types |
+| ---------------- | -------------------- | ------------------ | --------------------- |
+| `AUTO` | See the above Table | See the above Table | See the above Table |
+| `TEXT` | Text | Any `View` extending `TextView` | Any `Object` (calls `.toString()`) |
+| `TEXT_RESOURCE` | String Resource ID | Any `View` extending `TextView` | `int` or `Integer` string resource ids |
+| `BACKGROUND` | Background of the `View` | Any `View` | `Drawable`, `int` or `Integer` drawable resource ids |
+| `IMAGE` | Image in an `ImageView` | Any `View` extending `ImageView` | `Drawable`, `int` or `Integer` drawable resource ids |
+| `CHECKED_STATE` | Checked State of a `CheckBox` | Any `View` extending `CheckBox` | `boolean` or `Boolean` |
+
+## Injecting Views
+
+You can inject one or multiple `View` instances into any of your model methods by annotating a parameter with the `@InjectView` annotation like this:
+
+```java
+@OnBind
+public void bind(@InjectView(R.id.someLayout) LinearLayout someLayout) {
+    ...
+}
+```
+
+## Injecting Listeners or custom Objects
+
+You can inject any kind of listener or object instance into any method in your model class by annotating the parameters of the method with the `@Inject` annotation. But note that you have to provide these objects to the `EasyAdapter` instance at runtime. For example you can create a listener interface like this:
+
+```java
+public interface ExampleListener {
+    public void onClick(ExampleModel model);
+}
+```
+
+After implementing the interface you can provide the instance to the `EasyAdapter` in its constructor:
+
+```java 
+EasyAdapter<ViewModel> adapter = new EasyAdapter<>(getActivity(), models, exampleListenerImplementation);
+```
+
+And after that any method in your model class which has an `ExampleListener` as parameter will be provided with the `ExampleListener` instance you passed into the `EasyAdapter`:
+
+```java
+@OnClick(R.id.someView)
+public void onClick(@Inject ExampleListener listener) {
+    listener.onClick(this);
+}
+```
+
+By default you can inject the `Context` instance passed to the `EasyAdapter` or the `EasyAdapter` instance itself.
+
+```java
+@OnBind
+public void bind(@Inject Context context, @Inject EasyAdapter adapter) {
+    ...
+}
+```
+
+## Custom Bind/Unbind Behaviour
+
+Any method annotated with `@OnBind` will be called each time the model is bound to a `View`. You can use this to implement custom behaviour or features which are not covered by the `@BindToView` annotation. 
+
+Like `@OnBind` any method annotated with `@OnUnbind` will be called each time the model is being unbound from a `View`. The main purpose of this is to unregister listeners which have been set in methods annotated with `@OnBind`. 
+You can have as many methods annotated with `@OnBind` or `@OnUnbind` as you want. You can also use `@Inject` or `@InjectView` to statisfy parameters of those methods.
+
+If you want you can skip using `@BindToView` and completely implement any bind/unbind logic in methods annotated with `@OnBind` and `@OnUnbind`.
+
+```java
+@OnBind
+public void bind(@Inject Context, @InjectView(R.id.textView) TextView textView) {
+    Toast.makeText(context, "Bound model " + index, Toast.LENGTH_SHORT).show();
+    textView.setText(someText);
+}
+
+@OnUnbind
+public void unbind(@Inject Context) {
+    Toast.makeText(context, "Unbound model " + index, Toast.LENGTH_SHORT).show();
+}
+```
+
+## Reacting to Click Events
+
+Any method annotated with `@OnClick` will be called when the referenced `View` is clicked. You can again use `@Inject` or `@InjectView` to statisfy the parameters of the method:
+
+```java
+@OnClick(R.id.someView)
+public void clickedSomeView(@InjectView(R.id.someView) FrameLayout someView) {
+    ...
+}
+```
+
+## Reacting to Checked Changed Events
+
+Any method annotated with `@OnCheckedChanged` will be called when the checked state of the referenced `CheckBox` is changed. You can again use `@Inject` or `@InjectView` to statisfy the parameters of the method:
+
+```java
+@OnCheckedChanged(R.id.checkBox)
+public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox) {
+    ...
+}
+```
 
 # How it works
 
