@@ -156,6 +156,41 @@ By specifing the `property` value of the `@BindToView` annotation you can tell `
 | `IMAGE` | Image in an `ImageView` | Any `View` extending `ImageView` | `Drawable`, `int` or `Integer` drawable resource ids |
 | `CHECKED_STATE` | Checked State of a `CheckBox` | Any `View` extending `CheckBox` | `boolean` or `Boolean` |
 
+Here are some examples:
+
+```java
+
+// Sets the returned string resource id as text to the TextView with id R.id.textView
+@BindToView(R.id.textView)
+public int getText() {
+    return textResId;
+}
+
+// Calls toString() on the returned object an sets it as text to the TextView with id R.id.textView2
+@BindToView(R.id.textView2)
+public CustomObject getCustomObject() {
+    return someObject;
+}
+
+// Sets the returned drawable as background of the View with id R.id.layout
+@BindToView(value = R.id.layout, property = Property.BACKGROUND)
+public Drawable getBackground() {
+    return backgroundDrawable;
+}
+
+// Sets the returned boolean as checked state of the CheckBox with id R.id.checkBox
+@BindToView(R.id.checkBox)
+public boolean getCheckedState() {
+    return checked;
+}
+
+// Sets the returned drawable resource id as image of the ImageView with id R.id.imageView
+@BindToView(value = R.id.imageView, property = Property.IMAGE)
+public int getImage() {
+    return drawableResId;
+}
+```
+
 ## Injecting Views
 
 You can inject one or multiple `View` instances into any of your model methods by annotating a parameter with the `@InjectView` annotation like this:
@@ -242,6 +277,20 @@ Any method annotated with `@OnCheckedChanged` will be called when the checked st
 @OnCheckedChanged(R.id.checkBox)
 public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox) {
     ...
+}
+```
+
+You can use `@BindToView` in conjunction with `@OnCheckedChanged` to keep track of the checked state of a `CheckBox` in your model:
+
+```java
+@BindToView(R.id.checkBox)
+public boolean getCheckedState() {
+    return checkedState;
+}
+
+@OnCheckedChanged(R.id.checkBox)
+public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox) {
+    checkedState = checkBox.isChecked();
 }
 ```
 
