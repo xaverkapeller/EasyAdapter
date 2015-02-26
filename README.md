@@ -17,6 +17,7 @@ A powerful yet lightweight view injection &amp; list creation library to easily 
   * [Reacting to Bind and Unbind Events](#reacting-to-bind-and-unbind-events)
   * [Reacting to Click Events](#reacting-to-click-events)
   * [Reacting to Checked Changed Events](#reacting-to-checked-changed-events)
+* [Planned Features](#planned-features)
 * [How it Works](#how-it-works)
 
 # Basic Usage
@@ -293,6 +294,13 @@ public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox) {
     checkedState = checkBox.isChecked();
 }
 ```
+
+# Planned Features
+
+- [ ] Extended inject functionality
+- [ ] Support for more Views and data types
+- [ ] More intelligent automatic binding.
+- [ ] Providing access to underlying view holder for better animation support
 
 # How it works
 
