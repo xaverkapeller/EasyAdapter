@@ -12,10 +12,11 @@ import android.widget.Toast;
 
 import com.github.easyadapter.EasyAdapter;
 import com.github.easyadapter.api.ViewModel;
+import com.github.easyadapter.app.R;
 import com.github.easyadapter.app.models.ExampleListener;
 import com.github.easyadapter.app.models.ExampleModelOne;
-import com.github.easyadapter.app.R;
 import com.github.easyadapter.app.models.ExampleModelTwo;
+import com.github.easyadapter.impl.AbsViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +44,11 @@ public class MainFragment extends Fragment implements ExampleListener {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
         final List<ViewModel> models = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            if(i % 2 == 0) {
+            if (i % 2 == 0) {
                 models.add(new ExampleModelOne(String.valueOf(i), R.drawable.ic_launcher));
             } else {
                 models.add(new ExampleModelTwo(R.string.checkbox_text));
@@ -54,15 +57,14 @@ public class MainFragment extends Fragment implements ExampleListener {
 
         this.adapter = new EasyAdapter<>(getActivity(), models, this);
         this.recyclerView.setAdapter(this.adapter);
-        this.recyclerView.setHasFixedSize(true);
-        this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 
     @Override
-    public void onClick(ExampleModelOne model) {
-        int i = this.adapter.models().indexOf(model);
-        this.adapter.models().remove(model);
-        this.adapter.notifyItemRemoved(i);
+    public void onClick(AbsViewHolder<ExampleModelOne> viewHolder) {
+        final ExampleModelOne model = viewHolder.currentModel;
+        final int index = viewHolder.getAdapterPosition();
+        this.adapter.models().remove(index);
+        this.adapter.notifyItemRemoved(index);
         Toast.makeText(getActivity(), "Clicked on " + model.getText(), Toast.LENGTH_SHORT).show();
     }
 }

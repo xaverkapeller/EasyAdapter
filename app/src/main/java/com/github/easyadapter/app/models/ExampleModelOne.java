@@ -33,9 +33,4 @@ public class ExampleModelOne implements ViewModel {
     public int getBackground() {
         return drawableRes;
     }
-
-    @OnClick(R.id.layout)
-    public void onClick(@Inject ExampleListener listener) {
-        listener.onClick(this);
-    }
 }

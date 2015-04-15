@@ -1,15 +1,10 @@
 package com.github.easyadapter.impl;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import com.github.easyadapter.EasyAdapter;
-import com.github.easyadapter.annotations.Inject;
 import com.github.easyadapter.api.ViewModel;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created with Android Studio

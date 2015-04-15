@@ -12,17 +12,17 @@ import com.github.easyadapter.api.ViewModel;
  */
 public abstract class AbsViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder {
 
-    private T mCurrentModel = null;
+    public T currentModel = null;
 
     public AbsViewHolder(View itemView) {
         super(itemView);
     }
 
     public void bind(T model) {
-        if (mCurrentModel != null) {
-            performUnbind(mCurrentModel);
+        if (currentModel != null) {
+            performUnbind(currentModel);
         }
-        mCurrentModel = model;
+        currentModel = model;
         performBind(model);
     }
 

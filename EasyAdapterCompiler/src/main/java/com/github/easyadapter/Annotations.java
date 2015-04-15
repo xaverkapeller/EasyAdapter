@@ -14,4 +14,6 @@ public class Annotations {
     public static final String BIND_TO_VIEW = "com.github.easyadapter.annotations.BindToView";
     public static final String INJECT_VIEW = "com.github.easyadapter.annotations.InjectView";
     public static final String INJECT = "com.github.easyadapter.annotations.Inject";
+    public static final String CALL_IF_SATISFIED = "com.github.easyadapter.annotations.CallIfSatisfied";
+    public static final String LISTENER = "com.github.easyadapter.annotations.Listener";
 }

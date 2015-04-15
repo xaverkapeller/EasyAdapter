@@ -1,1 +1,1 @@
-include ':app', ':EasyAdapter', ':EasyAdapterCompiler'
+include ':app', ':EasyAdapter', ':EasyAdapterCompiler', ':CodeBuilder'
