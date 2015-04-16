@@ -1,7 +1,8 @@
 package com.github.easyadapter.annotations;
 
 /**
- * Created by kapeller on 13/04/15.
+ * Methods which are annotated with {@link com.github.easyadapter.annotations.CallIfSatisfied} will
+ * only be called if all dependencies are satisfied.
  */
 public @interface CallIfSatisfied {
 }

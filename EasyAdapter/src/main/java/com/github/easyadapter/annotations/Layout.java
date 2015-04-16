@@ -4,9 +4,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Created with Android Studio
- * User: Xaver
- * Date: 26/01/15
+ * Defines the layout resource id of the layout which will be used for the view model.
+ * Only classes which implement {@link com.github.easyadapter.api.ViewModel} can be annotated with
+ * this annotation. Annotating another class with this will yield a compile time error.
  */
 @Target(ElementType.TYPE)
 public @interface Layout {

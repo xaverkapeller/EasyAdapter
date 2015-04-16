@@ -4,9 +4,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Created with Android Studio
- * User: Xaver
- * Date: 29/01/15
+ * Defines the id which identifies the {@link android.view.View} which needs to be injected into
+ * the annotated parameter.
  */
 @Target(ElementType.PARAMETER)
 public @interface InjectView {

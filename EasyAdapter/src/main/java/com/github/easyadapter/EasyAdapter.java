@@ -12,10 +12,7 @@ import com.github.easyadapter.impl.AbsViewHolderFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created with Android Studio
@@ -32,6 +29,7 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
         public <T> T get(Class<T> cls);
     }
 
+    private final List<RecyclerView> mAttachedRecyclerViews = new ArrayList<>(10);
     private final SparseArray<AbsViewHolderFactory<T>> mFactoryMap = new SparseArray<>();
     private final InjectorImpl mInjector = new InjectorImpl();
     private final LayoutInflater mInflater;
@@ -39,17 +37,43 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
     private List<T> mViewModels;
     private List<T> mFilteredViewModels;
 
+    /**
+     * Creates a new EasyAdapter instance.
+     *
+     * <p>
+     *     <b><span style="color: red">Deprecated!</span> Will be removed in future versions.</b><br />
+     *     Use {@link #EasyAdapter(android.content.Context, java.util.List)} instead
+     *     and use {@link #inject(Object...)} to inject dependencies.
+     * </p>
+     *
+     * @param context The {@link Context} which will be used by the {@link com.github.easyadapter.EasyAdapter} and all {@link com.github.easyadapter.impl.AbsViewHolder}.
+     * @param models The initial {@link java.util.List} of view models. May be an empty list, but must not be null.
+     * @param injectedObjects Will be supplied to the underlying {@link com.github.easyadapter.impl.AbsViewHolder} instances to satisfy their dependencies.
+     */
+    @Deprecated
     public EasyAdapter(Context context, List<T> models, Object... injectedObjects) {
+        this(context, models);
+
+        for (Object object : injectedObjects) {
+            mInjector.add(object);
+        }
+    }
+
+    /**
+     * Creates a new EasyAdapter instance.
+     *
+     * @param context The {@link Context} which will be used by the {@link com.github.easyadapter.EasyAdapter} and all {@link com.github.easyadapter.impl.AbsViewHolder}.
+     * @param models The initial {@link java.util.List} of view models. May be an empty list, but must not be null.
+     */
+    public EasyAdapter(Context context, List<T> models) {
         mInflater = LayoutInflater.from(context);
         mViewModels = models;
         mFilteredViewModels = new ArrayList<>(models);
 
         mInjector.add(context);
         mInjector.add(this);
-        for (Object injected : injectedObjects) {
-            mInjector.add(injected);
-        }
 
+        // TODO: Devise better filter strategy.
         registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() {
@@ -81,6 +105,25 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
                 mFilteredViewModels = filter(mViewModels);
             }
         });
+    }
+
+    /**
+     * Provides the supplied objects to the underlying {@link com.github.easyadapter.impl.AbsViewHolder} instances to satisfy their dependencies.
+     * <p>
+     *     <b><span style="color: red">WARNING: You can only inject Objects before setting the
+     *     {@link com.github.easyadapter.EasyAdapter} to a {@link android.support.v7.widget.RecyclerView}!</span></b>
+     * </p>
+     *
+     * @param objects The Objects to inject
+     */
+    public void inject(Object... objects) {
+        if (mAttachedRecyclerViews.size() == 0) {
+            for (Object object : objects) {
+                mInjector.add(object);
+            }
+        } else {
+            throw new IllegalStateException("This EasyAdapter is already attached to a RecyclerView! You can only inject Objects before setting the EasyAdapter to a RecyclerView!");
+        }
     }
 
     @Override
@@ -118,22 +161,57 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
     }
 
     @Override
+    public void onViewAttachedToWindow(AbsViewHolder<T> holder) {
+        super.onViewAttachedToWindow(holder);
+        holder.onAttach();
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(AbsViewHolder<T> holder) {
+        super.onViewDetachedFromWindow(holder);
+        holder.onDetach();
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+
+        mAttachedRecyclerViews.add(recyclerView);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+
+        mAttachedRecyclerViews.remove(recyclerView);
+    }
+
+    @Override
     public int getItemCount() {
-        if(mFilteredViewModels != null) {
+        if (mFilteredViewModels != null) {
             return mFilteredViewModels.size();
         }
         return 0;
     }
 
+    /**
+     * Sets the {@link java.util.List} of view models the {@link com.github.easyadapter.EasyAdapter}
+     * is working with.
+     * <p>
+     *     <b>You need to use one of the notify methods for the changes to take effect!</b>
+     * </p>
+     *
+     * @param models The new {@link java.util.List} of view models.
+     */
     public void setModels(List<T> models) {
         mViewModels = models;
     }
 
     private List<T> filter(List<T> models) {
-        if(mFilter != null) {
+        if (mFilter != null) {
             final List<T> filtered = new ArrayList<>();
-            for(T item : models) {
-                if(mFilter.evaluate(item)) {
+            for (T item : models) {
+                if (mFilter.evaluate(item)) {
                     filtered.add(item);
                 }
             }
@@ -143,10 +221,28 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
         }
     }
 
+    /**
+     * <p>
+     *     <span style="color: red">Experimental! Implementation and API may change!</span>
+     * </p>
+     *
+     * Sets the {@link com.github.easyadapter.EasyAdapter.Filter} used by the {@link com.github.easyadapter.EasyAdapter}
+     * to filter its {@link java.util.List} of view models.
+     *
+     * <p>
+     *     <b>You need to use one of the notify methods for the changes to take effect!</b>
+     * </p>
+     *
+     * @param filter The {@link Filter} which will be used by the {@link com.github.easyadapter.EasyAdapter}.
+     */
     public void setFilter(Filter<T> filter) {
         mFilter = filter;
     }
 
+    /**
+     * Exposes the <b>unfiltered</b> {@link java.util.List} of view models used by the {@link com.github.easyadapter.EasyAdapter}.
+     * @return The {@link java.util.List} of <b>unfiltered</b> view models.
+     */
     public List<T> models() {
         return mViewModels;
     }

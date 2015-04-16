@@ -26,6 +26,16 @@ public abstract class AbsViewHolder<T extends ViewModel> extends RecyclerView.Vi
         performBind(model);
     }
 
+    public void onAttach() {
+
+    }
+
+    public void onDetach() {
+        if(currentModel != null) {
+            performUnbind(currentModel);
+        }
+    }
+
     protected abstract void performBind(T model);
 
     protected abstract void performUnbind(T model);
