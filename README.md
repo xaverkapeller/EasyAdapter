@@ -4,6 +4,7 @@ A powerful yet lightweight view injection &amp; list creation library to easily 
 * **No slow reflection, full performance**: EasyAdapter uses compile time annotation processing to generate performant and efficient view holder implementations for you. No performance hit due to reflection at runtime.
 * **Most errors caught at compile time**: EasyAdapter will check for most common errors at compile time and give you useful and detailed error messages.
 * **Generates real debuggable code**: You can view the view holder and view holder factory implementations at any time and debug any error and behaviour. No more guessing what went wrong.
+* **Intuitive and easy to use API**: Everything works just like you expect it. Any conceivable way to use the annotations is possible and the generated implementations are optimized for your specific use case. Should their be some flaw in your logic you will get errors and warnings at compile time. 
 
 # Table of Contents
 
@@ -13,7 +14,8 @@ A powerful yet lightweight view injection &amp; list creation library to easily 
 * [Advanced Usage](#advanced-usage)
   * [Binding Values to Views](#binding-values-to-views)
   * [Injecting Views](#injecting-views)
-  * [Injecting Listeners or custom Objects](#injecting-listeners-or-custom-objects)
+  * [Injecting Dependencies and reacting to Events](#injecting-dependencies-and-reacting-to-events)
+  * [Using AbsViewHolder to your advantage](#using-absviewholder-to-your-advantage)
   * [Reacting to Bind and Unbind Events](#reacting-to-bind-and-unbind-events)
   * [Reacting to Click Events](#reacting-to-click-events)
   * [Reacting to Checked Changed Events](#reacting-to-checked-changed-events)
@@ -52,11 +54,11 @@ Then create your model classes like usual and annoate them like this:
 public class ExampleModel implements ViewModel {
 
     private final String text;
-    private final int drawableRes;
+    private final int drawableResId;
 
-    public ExampleModel(String text, int drawableRes) {
+    public ExampleModel(String text, int drawableResId) {
         this.text = text;
-        this.drawableRes = drawableRes;
+        this.drawableResId = drawableResId;
     }
 
     @BindToView(R.id.textView)
@@ -66,27 +68,35 @@ public class ExampleModel implements ViewModel {
 
     @BindToView(value = R.id.layout, property = Property.BACKGROUND)
     public int getBackground() {
-        return drawableRes;
-    }
-
-    @OnClick(R.id.layout)
-    public void onClick(@Inject ExampleListener listener) {
-        listener.onClick(this);
+        return drawableResId;
     }
 }
 ```
 
 `@Layout` is used to define the layout associated with this model and `@BindToView` defines how to bind the data to the views. All view models also need to implement the `ViewModel` interface.
 
-And that is all you have to do! The rest is handled by the library. You can then just create a `List` of your models and pass them into the `EasyAdapter`.
+You can easily react to clicks or other events by annotating an interface like this:
 
 ```java
-final List<ViewModel> models = new ArrayList<>();
+@Listener(ExampleModel.class)
+public interface ExampleListener {
+
+    @OnClick(R.id.layout)
+    public void onClick(@Inject AbsViewHolder<ExampleModel> viewHolder);
+}
+```
+
+The `@Listener` annotation defines the view model on which you want to listen for events. You can then use annotations like `@OnClick` to indicate which methods should be called on the listener for which event. Reacting to events like this is explained in more detail in the chapter [Injecting Dependencies and reacting to Events](#injecting-dependencies-and-reacting-to-events) and in subsequent chapters.
+
+After that displaying your models is as easy as creating a `List` of them and supplying them to your `EasyAdapter` instance:
+
+```java
+final List<ExampleModel> models = new ArrayList<>();
 for (int i = 0; i < 100; i++) {
     models.add(new ExampleModel(String.valueOf(i), R.drawable.some_background));
 }
 
-EasyAdapter<ViewModel> adapter = new EasyAdapter<>(getActivity(), models);
+EasyAdapter<ExampleModel> adapter = new EasyAdapter<>(getActivity(), models);
 ```
 
 You can look at the example application contained in this repository for a more detailed demonstration of how to use this library!
@@ -194,7 +204,7 @@ public int getImage() {
 
 ## Injecting Views
 
-You can inject one or multiple `View` instances into any of your model methods by annotating a parameter with the `@InjectView` annotation like this:
+You can inject one or multiple `View` instances into any of the methods of your model or listener interface by annotating a parameter with the `@InjectView` annotation like this:
 
 ```java
 @OnBind
@@ -203,32 +213,57 @@ public void bind(@InjectView(R.id.someLayout) LinearLayout someLayout) {
 }
 ```
 
-## Injecting Listeners or custom Objects
+## Injecting Dependencies and reacting to Events
 
-You can inject any kind of listener or object instance into any method in your model class by annotating the parameters of the method with the `@Inject` annotation. But note that you have to provide these objects to the `EasyAdapter` instance at runtime. For example you can create a listener interface like this:
+You can inject any kind of object instance into any method in your model class or in a listener interface by annotating the parameters of the method with the `@Inject` annotation. But note that you have to provide most these objects to the `EasyAdapter` instance at runtime. If you have a controller interface which you want to use to handle the selected state of items in your list, for example:
 
 ```java
-public interface ExampleListener {
-    public void onClick(ExampleModel model);
+public interface SelectionController {
+    public void onSelect(Item item);
+    public boolean isSelected(Item item);
 }
 ```
 
-After implementing the interface you can provide the instance to the `EasyAdapter` in its constructor:
+Then you can inject the implementation of that interface at runtime by using the `inject()` method of the `EasyAdapter`:
 
-```java 
-EasyAdapter<ViewModel> adapter = new EasyAdapter<>(getActivity(), models, exampleListenerImplementation);
+```java
+adapter.inject(selectionControllerImplementation);
 ```
 
-And after that any method in your model class which has an `ExampleListener` as parameter will be provided with the `ExampleListener` instance you passed into the `EasyAdapter`:
+Note that you can only inject objects as long as the `EasyAdapter` is not attached to any `RecyclerView`. If methods in your model have a paramter of type `SelectionController` then the implementation you provided through `inject()` will be used to satisfy those parameters.
+
+---
+
+The same thing goes for interfaces annotated with `@Listener`. For example consider this interface:
+
+```java
+@Listener(ExampleModel.class)
+public interface ExampleListener {
+
+    @OnClick(R.id.layout)
+    public void onClick(@Inject AbsViewHolder<ExampleModel> viewHolder);
+}
+```
+
+After implementing the interface you can provide the instance to the `EasyAdapter` by using the `inject()` method:
+
+```java 
+EasyAdapter<ViewModel> adapter = new EasyAdapter<>(getActivity(), models);
+adapter.inject(exampleListenerImplementation);
+```
+
+You can also annotate methods of your model with `@OnClick` or similar annotations. For example you can have a method like this:
 
 ```java
 @OnClick(R.id.someView)
-public void onClick(@Inject ExampleListener listener) {
-    listener.onClick(this);
+public void onClick(@InjectView(R.id.textView) TextView textView) {
+    textView.setText(String.valueOf(counter++));
 }
 ```
 
-By default you can inject the `Context` instance passed to the `EasyAdapter` or the `EasyAdapter` instance itself.
+By default you can inject the `Context` instance passed to the `EasyAdapter` or the `EasyAdapter` instance itself without having to explicitly provide them with `inject()`. The same goes for the current `ViewModel` or `AbsViewHolder` instance although you would mostly want to do that in an interface annotated with `@Listener`. 
+
+Injecting `Context` and the `EasyAdapter` instance:
 
 ```java
 @OnBind
@@ -237,12 +272,58 @@ public void bind(@Inject Context context, @Inject EasyAdapter adapter) {
 }
 ```
 
+## Using AbsViewHolder to your advantage
+
+Injecting the `AbsViewHolder` instance is very useful since it provides you an easy way to access both the current model associated with the view holder and the `View` which the model is currently bound to. There are two public fields:
+
+ - `itemView`: This field exposes the `View` associated with the `AbsViewHolder`.
+ - `currentModel`: This field exposes the model which is currently bound to the `AbsViewHolder` and in extension to the `itemView` as well. 
+
+You can use both fields to easily create animations and/or greatly simplify listener implementations. Consider an interface like this:
+
+```java
+@Listener(ExampleModel.class)
+public interface ExampleListener {
+
+    @OnClick(R.id.layout)
+    public void onClick(@Inject AbsViewHolder<ExampleModel> viewHolder);
+}
+```
+
+After you implement this interface in the `Fragment` which contains your `RecyclerView` and properly inject the `Fragment` instance into the `EasyAdapter` instance with `inject()` you can use the `AbsViewHolder` instance you get from the event to perform animations and/or modify the model:
+
+```java
+public class ExampleFragment extends Fragment implements ExampleListener {
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ...
+        
+        EasyAdapter<ExampleModel> adapter = new EasyAdapter(getActivity(), models);
+        adapter.inject(this);
+        
+    }
+
+    ...
+
+    @Override
+    public void onClick(AbsViewHolder<ExampleModel> viewHolder) {
+        final ExampleModel model = viewHolder.currentModel;
+        model.doSomething();
+        
+        final View view = viewHolder.itemView;
+        view.animate().alpha(0.0f).setInterpolator(new CycleInterpolator(1.0f));
+    }
+}
+```
+
 ## Reacting to Bind and Unbind Events
 
 Any method annotated with `@OnBind` will be called each time the model is bound to a `View`. You can use this to implement custom behaviour or features which are not covered by the `@BindToView` annotation. 
 
 Like `@OnBind` any method annotated with `@OnUnbind` will be called each time the model is being unbound from a `View`. The main purpose of this is to unregister listeners which have been set in methods annotated with `@OnBind`. 
-You can have as many methods annotated with `@OnBind` or `@OnUnbind` as you want. You can also use `@Inject` or `@InjectView` to statisfy parameters of those methods.
+You can have as many methods annotated with `@OnBind` or `@OnUnbind` as you want. You can also use `@Inject` or `@InjectView` to satisfy parameters of those methods.
 
 If you want you can skip using `@BindToView` and completely implement any bind/unbind logic in methods annotated with `@OnBind` and `@OnUnbind`.
 
@@ -261,13 +342,11 @@ public void unbind(@Inject Context) {
 
 ## Reacting to Click Events
 
-Any method annotated with `@OnClick` will be called when the referenced `View` is clicked. You can again use `@Inject` or `@InjectView` to statisfy the parameters of the method:
+Any method annotated with `@OnClick` will be called when the referenced `View` is clicked. You can again use `@Inject` or `@InjectView` to satisfy the parameters of the method:
 
 ```java
 @OnClick(R.id.someView)
-public void clickedSomeView(@InjectView(R.id.someView) FrameLayout someView) {
-    ...
-}
+public void clickedSomeView(@InjectView(R.id.someView) FrameLayout someView);
 ```
 
 ## Reacting to Checked Changed Events
@@ -276,9 +355,7 @@ Any method annotated with `@OnCheckedChanged` will be called when the checked st
 
 ```java
 @OnCheckedChanged(R.id.checkBox)
-public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox) {
-    ...
-}
+public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox);
 ```
 
 You can use `@BindToView` in conjunction with `@OnCheckedChanged` to keep track of the checked state of a `CheckBox` in your model:
@@ -297,7 +374,8 @@ public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox) {
 
 # Planned Features
 
-- [ ] Extended inject functionality
+- [x] Better API for listener interfaces
+- [x] Extended inject functionality
 - [ ] Support for more Views and data types
 - [ ] More intelligent automatic binding.
 - [ ] Providing access to underlying view holder for better animation support
