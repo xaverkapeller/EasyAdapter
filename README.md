@@ -378,6 +378,9 @@ public void checkedChanged(@InjectView(R.id.checkBox) CheckBox checkBox) {
 - [x] Extended inject functionality
 - [ ] Support for more Views and data types
 - [ ] More intelligent automatic binding.
+- [ ] Filtering
+- [ ] Grouping with Headers
+- [ ] Hide/Show children of Group.
 - [ ] Providing access to underlying view holder for better animation support
 
 # How it works
