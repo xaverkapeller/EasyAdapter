@@ -21,10 +21,6 @@ import java.util.List;
  */
 public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsViewHolder<T>> {
 
-    public interface Filter<T> {
-        public boolean evaluate(T item);
-    }
-
     public interface Injector {
         public <T> T get(Class<T> cls);
     }
@@ -33,9 +29,7 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
     private final SparseArray<AbsViewHolderFactory<T>> mFactoryMap = new SparseArray<>();
     private final InjectorImpl mInjector = new InjectorImpl();
     private final LayoutInflater mInflater;
-    private Filter<T> mFilter = null;
     private List<T> mViewModels;
-    private List<T> mFilteredViewModels;
 
     /**
      * Creates a new EasyAdapter instance.
@@ -68,43 +62,9 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
     public EasyAdapter(Context context, List<T> models) {
         mInflater = LayoutInflater.from(context);
         mViewModels = models;
-        mFilteredViewModels = new ArrayList<>(models);
 
         mInjector.add(context);
         mInjector.add(this);
-
-        // TODO: Devise better filter strategy.
-        registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                mFilteredViewModels = filter(mViewModels);
-            }
-
-            @Override
-            public void onItemRangeChanged(int positionStart, int itemCount) {
-                super.onItemRangeChanged(positionStart, itemCount);
-                mFilteredViewModels = filter(mViewModels);
-            }
-
-            @Override
-            public void onItemRangeInserted(int positionStart, int itemCount) {
-                super.onItemRangeInserted(positionStart, itemCount);
-                mFilteredViewModels = filter(mViewModels);
-            }
-
-            @Override
-            public void onItemRangeRemoved(int positionStart, int itemCount) {
-                super.onItemRangeRemoved(positionStart, itemCount);
-                mFilteredViewModels = filter(mViewModels);
-            }
-
-            @Override
-            public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-                super.onItemRangeMoved(fromPosition, toPosition, itemCount);
-                mFilteredViewModels = filter(mViewModels);
-            }
-        });
     }
 
     /**
@@ -134,13 +94,13 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
 
     @Override
     public void onBindViewHolder(AbsViewHolder<T> viewHolder, int position) {
-        final T item = mFilteredViewModels.get(position);
+        final T item = mViewModels.get(position);
         viewHolder.bind(item);
     }
 
     @Override
     public int getItemViewType(int position) {
-        final T item = mFilteredViewModels.get(position);
+        final T item = mViewModels.get(position);
         final Class<?> itemClass = item.getClass();
         final int itemType = itemClass.hashCode();
 
@@ -152,7 +112,13 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
                 mFactoryMap.put(itemType, factory);
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException("ViewHolderFactory for " + item + " could not be found! Have you setup the Annotation Processor correctly?");
-            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
+            } catch (InvocationTargetException e) {
+                throw new IllegalStateException(e);
+            } catch (NoSuchMethodException e) {
+                throw new IllegalStateException(e);
+            } catch (InstantiationException e) {
+                throw new IllegalStateException(e);
+            } catch (IllegalAccessException e) {
                 throw new IllegalStateException(e);
             }
         }
@@ -188,8 +154,8 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
 
     @Override
     public int getItemCount() {
-        if (mFilteredViewModels != null) {
-            return mFilteredViewModels.size();
+        if (mViewModels != null) {
+            return mViewModels.size();
         }
         return 0;
     }
@@ -205,38 +171,6 @@ public class EasyAdapter<T extends ViewModel> extends RecyclerView.Adapter<AbsVi
      */
     public void setModels(List<T> models) {
         mViewModels = models;
-    }
-
-    private List<T> filter(List<T> models) {
-        if (mFilter != null) {
-            final List<T> filtered = new ArrayList<>();
-            for (T item : models) {
-                if (mFilter.evaluate(item)) {
-                    filtered.add(item);
-                }
-            }
-            return filtered;
-        } else {
-            return new ArrayList<>(models);
-        }
-    }
-
-    /**
-     * <p>
-     *     <span style="color: red">Experimental! Implementation and API may change!</span>
-     * </p>
-     *
-     * Sets the {@link com.github.easyadapter.EasyAdapter.Filter} used by the {@link com.github.easyadapter.EasyAdapter}
-     * to filter its {@link java.util.List} of view models.
-     *
-     * <p>
-     *     <b>You need to use one of the notify methods for the changes to take effect!</b>
-     * </p>
-     *
-     * @param filter The {@link Filter} which will be used by the {@link com.github.easyadapter.EasyAdapter}.
-     */
-    public void setFilter(Filter<T> filter) {
-        mFilter = filter;
     }
 
     /**

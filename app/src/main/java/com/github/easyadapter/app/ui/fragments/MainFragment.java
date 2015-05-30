@@ -55,7 +55,8 @@ public class MainFragment extends Fragment implements ExampleListener {
             }
         }
 
-        this.adapter = new EasyAdapter<>(getActivity(), models, this);
+        this.adapter = new EasyAdapter<>(getActivity(), models);
+        this.adapter.inject(this);
         this.recyclerView.setAdapter(this.adapter);
     }
 
