@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CodeBuilder/CodeBuilder.iml" filepath="$PROJECT_DIR$/CodeBuilder/CodeBuilder.iml" />
       <module fileurl="file://$PROJECT_DIR$/EasyAdapter.iml" filepath="$PROJECT_DIR$/EasyAdapter.iml" />
       <module fileurl="file://$PROJECT_DIR$/EasyAdapter/EasyAdapter-EasyAdapter.iml" filepath="$PROJECT_DIR$/EasyAdapter/EasyAdapter-EasyAdapter.iml" />
       <module fileurl="file://$PROJECT_DIR$/EasyAdapterCompiler/EasyAdapterCompiler.iml" filepath="$PROJECT_DIR$/EasyAdapterCompiler/EasyAdapterCompiler.iml" />

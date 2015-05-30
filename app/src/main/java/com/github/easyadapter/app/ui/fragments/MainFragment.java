@@ -28,14 +28,14 @@ import java.util.List;
  */
 public class MainFragment extends Fragment implements ExampleListener {
 
-    private RecyclerView recyclerView;
-    private EasyAdapter<ViewModel> adapter;
+    private RecyclerView mRecyclerView;
+    private EasyAdapter<ViewModel> mAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        this.recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
 
         return view;
     }
@@ -44,7 +44,7 @@ public class MainFragment extends Fragment implements ExampleListener {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        this.recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         final List<ViewModel> models = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -55,17 +55,18 @@ public class MainFragment extends Fragment implements ExampleListener {
             }
         }
 
-        this.adapter = new EasyAdapter<>(getActivity(), models);
-        this.adapter.inject(this);
-        this.recyclerView.setAdapter(this.adapter);
+        mAdapter = new EasyAdapter<>(getActivity(), models);
+        mAdapter.inject(this);
+
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     @Override
     public void onClick(AbsViewHolder<ExampleModelOne> viewHolder) {
-        final ExampleModelOne model = viewHolder.currentModel;
         final int index = viewHolder.getAdapterPosition();
-        this.adapter.models().remove(index);
-        this.adapter.notifyItemRemoved(index);
+        mAdapter.removeItem(index);
+
+        final ExampleModelOne model = viewHolder.currentModel;
         Toast.makeText(getActivity(), "Clicked on " + model.getText(), Toast.LENGTH_SHORT).show();
     }
 }

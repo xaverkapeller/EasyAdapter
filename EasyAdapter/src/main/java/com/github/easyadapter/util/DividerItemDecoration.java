@@ -9,27 +9,47 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 /**
- * Created by kapeller on 14/04/15.
+ * Basic implementation of {@link android.support.v7.widget.RecyclerView.ItemDecoration} which draws
+ * a divider between items.
+ *
+ * @author Xaver Kapeller
  */
 public class DividerItemDecoration extends RecyclerView.ItemDecoration {
-
-    private static final int[] ATTRS = new int[]{
-            android.R.attr.listDivider
-    };
 
     public enum Orientation {
         VERTICAL,
         HORIZONTAL
     }
 
-    private Drawable mDivider;
+    private final Drawable mDivider;
+    private final Orientation mOrientation;
 
-    private Orientation mOrientation;
-
+    /**
+     * Creates a new instance of {@link DividerItemDecoration}. A {@link DividerItemDecoration}
+     * constructed this way will use the divider {@link Drawable} defined in the style used by the
+     * passed in {@link Context}.
+     *
+     * @param context     Your current {@link Context}.
+     * @param orientation The orientation of your {@link RecyclerView}.
+     */
     public DividerItemDecoration(Context context, Orientation orientation) {
-        final TypedArray a = context.obtainStyledAttributes(ATTRS);
+        final TypedArray a = context.obtainStyledAttributes(new int[]{
+                android.R.attr.listDivider
+        });
         mDivider = a.getDrawable(0);
         a.recycle();
+
+        mOrientation = orientation;
+    }
+
+    /**
+     * Creates a new instance of {@link DividerItemDecoration}.
+     *
+     * @param drawable    The {@link Drawable} used as divider.
+     * @param orientation The orientation of your {@link RecyclerView}.
+     */
+    public DividerItemDecoration(Drawable drawable, Orientation orientation) {
+        mDivider = drawable;
         mOrientation = orientation;
     }
 
@@ -57,8 +77,8 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         final int childCount = parent.getChildCount();
         for (int i = 0; i < childCount; i++) {
             final View child = parent.getChildAt(i);
-            final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child
-                    .getLayoutParams();
+            final RecyclerView.LayoutParams params =
+                    (RecyclerView.LayoutParams) child.getLayoutParams();
             final int top = child.getBottom() + params.bottomMargin;
             final int bottom = top + mDivider.getIntrinsicHeight();
             mDivider.setBounds(left, top, right, bottom);
@@ -73,8 +93,8 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         final int childCount = parent.getChildCount();
         for (int i = 0; i < childCount; i++) {
             final View child = parent.getChildAt(i);
-            final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams) child
-                    .getLayoutParams();
+            final RecyclerView.LayoutParams params =
+                    (RecyclerView.LayoutParams) child.getLayoutParams();
             final int left = child.getRight() + params.rightMargin;
             final int right = left + mDivider.getIntrinsicHeight();
             mDivider.setBounds(left, top, right, bottom);
