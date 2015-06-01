@@ -2,8 +2,9 @@
 <resources>
 
     <string name="app_name">Easy Adapter</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
-    <string name="checkbox_text"><![CDATA[<--- Toggle this!]]></string>
+    <string name="fragment_main_toast_applied_filter">Now only showing checked items!</string>
+    <string name="fragment_main_toast_removed_filter">Now showing all items!</string>
+    <string name="fragment_main_toast_ordered_alphabetical">Ordered items alphabetically!</string>
+    <string name="fragment_main_toast_ordered_reverse_alphabetical">Ordered items from in reverse alphabetical order!</string>
 
 </resources>

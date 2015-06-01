@@ -12,17 +12,17 @@ import com.github.easyadapter.api.ViewModel;
  */
 public abstract class AbsViewHolder<T extends ViewModel> extends RecyclerView.ViewHolder {
 
-    public T currentModel = null;
+    public T itemModel = null;
 
     public AbsViewHolder(View itemView) {
         super(itemView);
     }
 
     public void bind(T model) {
-        if (currentModel != null) {
-            performUnbind(currentModel);
+        if (itemModel != null) {
+            performUnbind(itemModel);
         }
-        currentModel = model;
+        itemModel = model;
         performBind(model);
     }
 
@@ -31,8 +31,8 @@ public abstract class AbsViewHolder<T extends ViewModel> extends RecyclerView.Vi
     }
 
     public void onDetach() {
-        if(currentModel != null) {
-            performUnbind(currentModel);
+        if(itemModel != null) {
+            performUnbind(itemModel);
         }
     }
 
