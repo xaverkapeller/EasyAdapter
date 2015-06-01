@@ -13,7 +13,6 @@ import android.widget.Toast;
 import com.github.easyadapter.EasyAdapter;
 import com.github.easyadapter.api.ViewModel;
 import com.github.easyadapter.app.R;
-import com.github.easyadapter.app.models.ExampleListener;
 import com.github.easyadapter.app.models.ExampleModelOne;
 import com.github.easyadapter.app.models.ExampleModelTwo;
 import com.github.easyadapter.impl.AbsViewHolder;
@@ -26,7 +25,7 @@ import java.util.List;
  * User: Xaver
  * Date: 01/02/15
  */
-public class MainFragment extends Fragment implements ExampleListener {
+public class MainFragment extends Fragment implements ExampleModelOne.ExampleListener {
 
     private RecyclerView mRecyclerView;
     private EasyAdapter<ViewModel> mAdapter;

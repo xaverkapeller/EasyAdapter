@@ -1,15 +1,20 @@
 package com.github.easyadapter.codewriter.utils;
 
 
-import javax.annotation.processing.ProcessingEnvironment;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic;
 
 /**
  * Created with Android Studio
@@ -18,64 +23,10 @@ import javax.tools.Diagnostic;
  */
 public class Utils {
 
-    /**
-     * Tests wheter the given {@link javax.lang.model.element.Element} is a class.
-     *
-     * @param element The {@link javax.lang.model.element.Element} in question.
-     * @return true if the {@link javax.lang.model.element.Element} is a class, otherwise false.
-     */
-    public static boolean isClass(Element element) {
-        return element.getKind() == ElementKind.CLASS;
-    }
-
-    /**
-     * Tests wheter the given {@link javax.lang.model.element.Element} is a method.
-     *
-     * @param element The {@link javax.lang.model.element.Element} in question.
-     * @return true if the {@link javax.lang.model.element.Element} is a method, otherwise false.
-     */
-    public static boolean isMethod(Element element) {
-        return element.getKind() == ElementKind.METHOD;
-    }
-
-    /**
-     * Tests wheter the given {@link javax.lang.model.element.Element} is a interface.
-     *
-     * @param element The {@link javax.lang.model.element.Element} in question.
-     * @return true if the {@link javax.lang.model.element.Element} is a interface, otherwise false.
-     */
-    public static boolean isInterface(Element element) {
-        return element.getKind() == ElementKind.INTERFACE;
-    }
-
-    /**
-     * Tests wheter the given {@link javax.lang.model.element.Element} is a field.
-     *
-     * @param element The {@link javax.lang.model.element.Element} in question.
-     * @return true if the {@link javax.lang.model.element.Element} is a field, otherwise false.
-     */
-    public static boolean isField(Element element) {
-        return element.getKind() == ElementKind.FIELD;
-    }
-
-    /**
-     * Returns the fully qualified class name of the supplied {@link javax.lang.model.element.Element}.
-     *
-     * @param element The {@link javax.lang.model.element.Element} in question
-     * @return The fully qualified class name as {@link String}
-     */
     public static String getFullClassName(TypeElement element) {
-        final String packageName = getPackageName(element);
-        final String className = element.getSimpleName().toString();
-        return String.format("%s.%s", packageName, className);
+        return element.asType().toString();
     }
 
-    /**
-     * Returns the package name of the supplied {@link javax.lang.model.element.Element}.
-     *
-     * @param element The {@link javax.lang.model.element.Element} in question
-     * @return The package name of the {@link javax.lang.model.element.Element}
-     */
     public static String getPackageName(Element element) {
         final Element enclosingElement = element.getEnclosingElement();
         if (enclosingElement instanceof PackageElement) {
@@ -86,25 +37,44 @@ public class Utils {
         }
     }
 
-    /**
-     * Raises a compile error and indicates a supplied {@link javax.lang.model.element.Element} as source of the error.
-     *
-     * @param environment The current {@link javax.annotation.processing.ProcessingEnvironment} in which the error will be raised
-     * @param message     The message to go along with the error
-     * @param element     The reference {@link javax.lang.model.element.Element} for the error.
-     */
-    public static void error(ProcessingEnvironment environment, String message, Element element) {
-        environment.getMessager().printMessage(Diagnostic.Kind.ERROR, message, element);
+    public static AnnotationValue getAnnotationValue(Element element, String className, String name) {
+        final Map<? extends ExecutableElement, ? extends AnnotationValue> map = getAnnotationElementValueMap(element, className);
+        if (map != null) {
+            return findAnnotationValue(name, map);
+        }
+
+        return null;
     }
 
-    /**
-     * Raises a compile error
-     *
-     * @param environment The current {@link javax.annotation.processing.ProcessingEnvironment} in which the error will be raised
-     * @param message     The message to go along with the error
-     */
-    public static void error(ProcessingEnvironment environment, String message) {
-        environment.getMessager().printMessage(Diagnostic.Kind.ERROR, message);
+    private static Map<? extends ExecutableElement, ? extends AnnotationValue> getAnnotationElementValueMap(Element element, String className) {
+        final List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+        for (AnnotationMirror mirror : annotationMirrors) {
+            final String annotationClassName = mirror.getAnnotationType().toString();
+            if (annotationClassName.equals(className)) {
+                return mirror.getElementValues();
+            }
+        }
+
+        return null;
+    }
+
+    private static AnnotationValue findAnnotationValue(String name, Map<? extends ExecutableElement, ? extends AnnotationValue> map) {
+        for (ExecutableElement key : map.keySet()) {
+            if (key.getSimpleName().toString().equals(name)) {
+                return map.get(key);
+            }
+        }
+        return null;
+    }
+
+    public static boolean hasAnnotation(Element element, String annotationClass) {
+        final List<? extends AnnotationMirror> mirrors = element.getAnnotationMirrors();
+        for (AnnotationMirror mirror : mirrors) {
+            if (mirror.getAnnotationType().toString().equals(annotationClass)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static TypeElement getSuperElement(TypeElement element) {
@@ -117,11 +87,17 @@ public class Utils {
         return (TypeElement) declaredType.asElement();
     }
 
-    public static String getClassName(Class<?> cls, Class<?> genericType) {
-        return String.format("%s<%s>", cls.getName(), genericType.getName());
-    }
+    public static List<ExecutableElement> getConstructors(TypeElement typeElement) {
+        final List<ExecutableElement> constructors = new ArrayList<>();
 
-    public static String getClassName(Class<?> cls) {
-        return cls.getName();
+        final List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
+        for (Element element : enclosedElements) {
+            if (element.getKind() == ElementKind.CONSTRUCTOR) {
+                final ExecutableElement constructor = (ExecutableElement) element;
+                constructors.add(constructor);
+            }
+        }
+
+        return constructors;
     }
 }
